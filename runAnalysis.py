@@ -10,7 +10,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1)
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
-dataDir='/scratch/CMSSW_12_3_0/src/Projekt/Magisterka/Data'
+dataDir='/scratch/CMSSW_12_3_0/src/Projekt/Data/'
 lsCommand='ls -1 '+dataDir+'|grep root'
 print ('command: ',lsCommand)
 dir=subprocess.Popen(lsCommand, stdout=subprocess.PIPE,shell=True,text=True)
