@@ -266,11 +266,13 @@ void Projekt::analyze(
 		}
   	if (abs(gp.pdgId()) == 13 && gp.status() == 1){ //generated particle is a muon (which must be stable but that's a given)
 			histo_muon_pt->Fill(gp.pt());
-			histo_muon_eta->Fill(gp.eta());
       double muon_pl = gp.pt()*sinh(gp.eta());
       histo_muon_pl->Fill(muon_pl);
       double muon_p = gp.pt()*cosh(gp.eta());
 			histo_muon_p->Fill(muon_p);
+      if(muon_p>2){			
+        histo_muon_eta->Fill(gp.eta());
+      }
 			double muon_phi = gp.phi();
       if (muon_phi <= 0){
 				muon_phi += 2*M_PI;
@@ -284,11 +286,13 @@ void Projekt::analyze(
       std::cout << "Particle with PDG ID: " << gp.pdgId() << " and status: " << gp.status() << "\nValid HSCP candidate generated!" << std::endl;
 			if(gp.status()==1){
 				histo_stau_pt->Fill(gp.pt());
-      	histo_stau_eta->Fill(gp.eta());
 				double hscp_pl = gp.pt()*sinh(gp.eta());
 				histo_stau_pl->Fill(hscp_pl);
 				double hscp_p = gp.pt()*cosh(gp.eta());
 				histo_stau_p->Fill(hscp_p);
+        if(hscp_p>0.5){    
+          histo_stau_eta->Fill(gp.eta());
+        }
 				double hscp_phi = gp.phi();
 				if(hscp_phi <= 0){
 					hscp_phi += 2*M_PI;
