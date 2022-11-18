@@ -261,7 +261,8 @@ void Projekt::analyze(
   const std::vector<reco::GenParticle> & genParticles = ev.get(inputGP); 
   std::cout <<"Number of Gen Particles: "<<genParticles.size() << std::endl;
   for (const auto & gp : genParticles) {
-		if(gp.status()==1){	
+//begin filling of histograms for both HSCP and muon generated particles
+		if(gp.status()==1){	 // status of 1 signifies that the generated particle is stable - status of e.g. 44 means instability
 			histo_pdgCount->Fill(gp.pdgId());
 		}
   	if (abs(gp.pdgId()) == 13 && gp.status() == 1){ //generated particle is a muon (which must be stable but that's a given)
@@ -282,7 +283,7 @@ void Projekt::analyze(
 			histo_muon_beta->Fill(muon_beta);
       histo_muon_invbeta->Fill(1/muon_beta);
     }
-    else if (abs(gp.pdgId())>1000000) { //generated particle is BSM particle (e.g. stau->pdgID=1000015
+    else if (abs(gp.pdgId())>1000000) { //generated particle is BSM particle (e.g. stau->pdgID=1000015, many PIDs for R hadrons)
       std::cout << "Particle with PDG ID: " << gp.pdgId() << " and status: " << gp.status() << "\nValid HSCP candidate generated!" << std::endl;
 			if(gp.status()==1){
 				histo_stau_pt->Fill(gp.pt());
@@ -295,7 +296,7 @@ void Projekt::analyze(
         }
 				double hscp_phi = gp.phi();
 				if(hscp_phi <= 0){
-					hscp_phi += 2*M_PI;
+					hscp_phi += 2*M_PI; //angles only between 0 and 2*pi
 				}
 				histo_stau_phi->Fill(hscp_phi);
 				double hscp_beta = hscp_p/gp.energy();
