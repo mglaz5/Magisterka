@@ -129,7 +129,7 @@ Projekt::~Projekt()
 void Projekt::beginJob()
 {
   //make a new Root file
-  myRootFile=new TFile("rhadron_mion_analiza.root","RECREATE");
+  myRootFile=new TFile("rhadron_mion_analiza.root","RECREATE"); //remember to change name of ROOT file when changing datafiles!
   //create relevant histograms
   histo_pdgCount = new TH1D("histo_pdgCount","PID Count;PID;#Events",12,-3000000,3000000);
   
@@ -140,6 +140,7 @@ void Projekt::beginJob()
   histo_stau_phi = new TH1D("histo_stau_phi","Generated R hadron #phi;Generated #phi [rad];#Events",37,0.,2*M_PI);
   histo_stau_beta = new TH1D("histo_stau_beta","Generated R hadron #beta;Generated #beta;#Events",20,0.,1.);
   histo_stau_invbeta = new TH1D("histo_stau_invbeta","Generated R hadron 1/#beta;Generated 1/#beta;#Events",40,1.,10.);
+  histo_stau_pdgId = new TH1D("histo_stau_pdgId","PID count for generated R hadron candidates; PID; #Events",0,-3000000,3000000);
 
   histo_muon_pt = new TH1D("histo_muon_pt","Genereated muon p_{T}; Generated p_{T} [GeV]; #Events",100,0.,100.);
   histo_muon_eta = new TH1D("histo_muon_eta","Generated muon #eta; Generated #eta; #Events",100,-5.,5.);
@@ -164,6 +165,7 @@ void Projekt::endJob()
   histo_stau_phi->Write();
   histo_stau_beta->Write();
   histo_stau_invbeta->Write();
+  histo_stau_pdgId->Write();
 
   histo_muon_pt->Write();
   histo_muon_eta->Write();
@@ -183,6 +185,7 @@ void Projekt::endJob()
   delete histo_stau_phi;
   delete histo_stau_beta;
   delete histo_stau_invbeta;
+  delete histo_stau_pdgId;
 
   delete histo_muon_pt;
   delete histo_muon_eta;
@@ -286,6 +289,7 @@ void Projekt::analyze(
     else if (abs(gp.pdgId())>1000000) { //generated particle is BSM particle (e.g. stau->pdgID=1000015, many PIDs for R hadrons)
       std::cout << "Particle with PDG ID: " << gp.pdgId() << " and status: " << gp.status() << "\nValid HSCP candidate generated!" << std::endl;
 			if(gp.status()==1){
+        histo_pdgCount->Fill(gp.pdgId());
 				histo_stau_pt->Fill(gp.pt());
 				double hscp_pl = gp.pt()*sinh(gp.eta());
 				histo_stau_pl->Fill(hscp_pl);
