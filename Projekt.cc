@@ -68,7 +68,6 @@ private:
   edm::ParameterSet theConfig;
   unsigned int theEventCount;
   unsigned int hscp_count;
-  unsigned int muon_count;
   //added variables
   TFile *myRootFile;
 
@@ -79,7 +78,7 @@ private:
 
   TH1D *histo_pseudorapidity; //in case of R hadrons, this is for *charged* R hadrons
   TH1D *histo_pseudorapidity_neutral; //only relevant for R hadrons
-  TH1D *histo_pseudorapidity_MUON;
+
 
   ////////////////////////////////////////  
 // KINEMATIC PARAMETERS FOR HSCP AND MUON //
@@ -147,7 +146,7 @@ const TrackingParticle & ancestor(const TrackingParticle & particle) {
 }
 
 Projekt::Projekt(const edm::ParameterSet& conf) 
-  : theConfig(conf), theEventCount(0), hscp_count(0), muon_count(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes())
+  : theConfig(conf), theEventCount(0), hscp_count(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes())
 {
   cout <<" CTORXX" << endl;
 //  inputOMTF = consumes<l1t::RegionalMuonCandBxCollection>(theConfig.getParameter<edm::InputTag>("inputOMTF") );
@@ -183,17 +182,16 @@ void Projekt::beginJob()
 //stau432_stau_muonsystem.root - not possible bc file has no simulated tracks
 //FEVTSIM_1_stau_M432_full.root - for new FEVTSIM file received on 13/12/2022 (mass 432 MeV, stau) - overwritten by accident by FEVTSIM.root
 
-  myRootFile=new TFile("FEVTSIM_RHadron_M800_full.root","RECREATE"); //remember to change name when changing datafiles!
+  myRootFile=new TFile("FEVTSIM_stau_M200_full.root","RECREATE"); //remember to change name when changing datafiles!
 
   //////////////////////////////////////////////////////////
 // PSEUDORAPIDITY HISTOGRAMS SPECIFYING MUON SYSTEM REGIONS //
   //////////////////////////////////////////////////////////
 
-  const Int_t nBins = 6;
-  Double_t edges[nBins+1] = {-2.1,-1.24,-0.83,0,0.83,1.24,2.1};
+  const Int_t nBins = 20;
+  Double_t edges[nBins+1] = {-2.1,-1.89,-1.68,-1.47,-1.26,-1.05,-0.84,-0.63,-0.42,-0.21,0,0.21,0.42,0.63,0.84,1.05,1.26,1.47,1.68,1.89,2.1};
   histo_pseudorapidity = new TH1D("histo_pseudorapidity","Charged HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
-  //histo_pseudorapidity_neutral = new TH1D("histo_pseudorapidity_neutral","Neutral HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
-  histo_pseudorapidity_MUON = new TH1D("histo_pseudorapidity_MUON","Muon count in MTF ranges;Simulated #eta;#Events",nBins,edges);
+  histo_pseudorapidity_neutral = new TH1D("histo_pseudorapidity_neutral","Neutral HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
 
   //////////////////////////////////////////
 // KINEMATIC HISTOGRAMS FOR HSCPs AND MUONS //
@@ -226,31 +224,21 @@ void Projekt::beginJob()
 void Projekt::endJob()
 {
   //write histogram data
-  //histo_pdgCount->Write(); 
   std::cout << "HSCP COUNT: " << hscp_count << std::endl; 
   std::cout << "HSCP COUNT INVERSE: " << 1./hscp_count << std::endl;
   TH1D *histo_pseudorapidity_ratio = (TH1D*) histo_pseudorapidity->Clone(); //in case of R hadrons, this is for *charged* R hadrons
   histo_pseudorapidity_ratio -> SetTitle("Ratio of charged HSCPs in MTF ranges:total HSCP count;Simulated #eta;HSCP_{MTF}/HSCP_{TOTAL}");
   double scaling = 1./hscp_count; //PROBLEM - gives zero, SOLUTION - 1. not 1 (otherwise any fraction resulting from int/int gives zero)
   histo_pseudorapidity_ratio -> Scale(scaling);
-
-  std::cout << "MUON COUNT: " << muon_count << std::endl; 
-  std::cout << "MUON COUNT INVERSE: " << 1./muon_count << std::endl;
-  TH1D *histo_pseudorapidity_MUON_ratio = (TH1D*) histo_pseudorapidity_MUON->Clone(); //in case of R hadrons, this is for *charged* R hadrons
-  histo_pseudorapidity_MUON_ratio -> SetTitle("Ratio of muons in MTF ranges:total muon count;Simulated #eta;Muon_{MTF}/Muon_{TOTAL}");
-  double scaling_MUON = 1./muon_count; //PROBLEM - gives zero, SOLUTION - 1. not 1 (otherwise any fraction resulting from int/int gives zero)
-  histo_pseudorapidity_MUON_ratio -> Scale(scaling_MUON);
   
-  /*TH1D *histo_pseudorapidity_neutral_ratio = (TH1D*) histo_pseudorapidity_neutral->Clone(); //only relevant for R hadrons
+  TH1D *histo_pseudorapidity_neutral_ratio = (TH1D*) histo_pseudorapidity_neutral->Clone(); //only relevant for R hadrons
   histo_pseudorapidity_neutral_ratio -> SetTitle("Ratio of neutral HSCPs in MTF ranges:total HSCP count;Simulated #eta;HSCP_{MTF}/HSCP_{TOTAL}");
-  histo_pseudorapidity_neutral_ratio -> Scale(scaling);*/
+  histo_pseudorapidity_neutral_ratio -> Scale(scaling);
 
   histo_pseudorapidity->Write(); 
-  //histo_pseudorapidity_neutral->Write();
+  histo_pseudorapidity_neutral->Write();
   histo_pseudorapidity_ratio->Write();
-  //histo_pseudorapidity_neutral_ratio->Write();
-  histo_pseudorapidity_MUON->Write();
-  histo_pseudorapidity_MUON_ratio->Write();
+  histo_pseudorapidity_neutral_ratio->Write();
 
   histo_pdgCount->Write();
   histo_pdgCount_HSCP->Write();
@@ -277,11 +265,9 @@ void Projekt::endJob()
   delete histo_pdgCount_HSCP;
   
   delete histo_pseudorapidity;
-  //delete histo_pseudorapidity_neutral;
+  delete histo_pseudorapidity_neutral;
   delete histo_pseudorapidity_ratio;
-  //delete histo_pseudorapidity_neutral_ratio;
-  delete histo_pseudorapidity_MUON;
-  delete histo_pseudorapidity_MUON_ratio;
+  delete histo_pseudorapidity_neutral_ratio;
 
   delete histo_stau_pt;
   delete histo_stau_eta;
@@ -306,7 +292,7 @@ void Projekt::endJob()
 void Projekt::analyze(
     const edm::Event& ev, const edm::EventSetup& es){
   std::cout << " -------------------------------- HERE Cwiczenie::analyze "<< std::endl;
-  bool debug = true;
+ // bool debug = true;
 
 //  edm::Handle<vector<l1t::TrackerMuon> > gmtColl;
 //  ev.getByToken(inputGMT, gmtColl);
@@ -316,14 +302,14 @@ void Projekt::analyze(
   edm::Handle<edm::SimTrackContainer> simTrk;
   ev.getByToken(inputSim, simTrk);
   const std::vector<SimTrack>  & mySimTracks = *(simTrk.product());
-  //std::cout <<" SIMULATED TRACKS: "<<mySimTracks.size()<<std::endl;
+  std::cout <<" SIMULATED TRACKS: "<<mySimTracks.size()<<std::endl;
 
   std::cout<<simTrk<<std::endl;
 
   edm::Handle<edm::SimVertexContainer> simVtx;
   ev.getByToken(inputVtx, simVtx);
   const std::vector<SimVertex> & mySimVerts= *(simVtx.product());
-  //std::cout <<" SIMULATED VERTICES: "<<mySimVerts.size()<<std::endl;
+  std::cout <<" SIMULATED VERTICES: "<<mySimVerts.size()<<std::endl;
 
 //My simHits contribution contd.: vector like GenParticles, so I am attempting the same approach
 
@@ -351,8 +337,6 @@ void Projekt::analyze(
     const SimTrack & track = *it;
     if ( track.type() == -99) continue;
     if ( track.vertIndex() != 0) continue;
-    //sucessful muon, add to countG
-    //simMuonCount++;
 
     double phi_sim = track.momentum().phi(); //momentum azimutal angle
     double pt_sim = track.momentum().pt(); //transverse momentum
@@ -360,9 +344,7 @@ void Projekt::analyze(
 
     if(abs(track.type()) > 1000000){
       hscp_count++; // regardless of whether stau or R hadron (charged/neutral), values in each histogram bar will be divided by TOTAL number of all candidates simulated
-      //histo_pseudorapidity->Fill(eta_sim);
-
-      
+ 
 //FOR R HADRONS ONLY:
       if(track.charge()==0){
         histo_pseudorapidity_neutral->Fill(eta_sim);
@@ -372,10 +354,7 @@ void Projekt::analyze(
 	}
 }
 
-	if(abs(track.type()) == 13){
-      muon_count++;
-      histo_pseudorapidity_MUON->Fill(eta_sim);
-	}
+
 
 /*    bool muon = false;
     bool matched = false;
@@ -389,7 +368,7 @@ void Projekt::analyze(
      if (debug) {
       if (muon)    std::cout <<"MUON  "; else std::cout<<"      ";
       if (matched) std::cout <<"MATCH "; else std::cout<<"      "; */
-      std::cout <<" trackId: " <<track.trackId() 
+     /* std::cout <<" trackId: " <<track.trackId() 
           <<" type: "<<track.type() // 13 or -13 is a muon
           << " pt_sim: " << pt_sim <<" eta_sim: "<<eta_sim<<" phi_sim: "<<phi_sim
           <<" vtx: "<<track.vertIndex();
@@ -401,11 +380,11 @@ void Projekt::analyze(
                    <<", parent: "<< mySimVerts[track.vertIndex()].parentIndex();
       }
       std::cout << std::endl; 
-    }
+    }*/
   
   //if(simMuonCount!=1) { cout<<"    Simulated muon count != 1"<<endl; return; }
   const std::vector<reco::GenParticle> & genParticles = ev.get(inputGP); 
-  std::cout <<"Number of Gen Particles: "<<genParticles.size() << std::endl;
+  //std::cout <<"Number of Gen Particles: "<<genParticles.size() << std::endl;
   for (const auto & gp : genParticles) {
 		if(gp.status()==1){	
 			histo_pdgCount->Fill(gp.pdgId());
@@ -469,8 +448,8 @@ void Projekt::analyze(
        // std::cout << "\t\tDaughter #" << no2 << ": " << gp.daughter(j)->pdgId() << std::endl;
      
     //  std::cout << std::endl;
-else{
-      continue;
+//else{
+ //     continue;
     }
 	}
 }
