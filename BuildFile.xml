@@ -11,6 +11,9 @@
 <use   name="clhep"/>
 <use   name="hepmc"/>
 <use   name="heppdt"/>
+<use   name="Geometry/DTGeometry"/>
+
+
 
 <library   file="Projekt.cc" name="Projekt">
   <flags   EDM_PLUGIN="1"/>
