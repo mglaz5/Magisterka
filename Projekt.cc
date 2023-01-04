@@ -24,6 +24,8 @@
 #include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include "DataFormats/MuonDetId/interface/DTLayerId.h"
 #include "DataFormats/MuonDetId/interface/DTSuperLayerId.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "Geometry/CommonDetUnit/interface/GlobalTrackingGeometry.h"
@@ -38,6 +40,7 @@
 #include "TProfile.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TNtuple.h"
 #include "TLatex.h"
 #include "TFile.h"
 #include <sstream>
@@ -77,7 +80,7 @@ private:
   /////////////////////////////
 
   TH1D *histo_pseudorapidity; //in case of R hadrons, this is for *charged* R hadrons
-  TH1D *histo_pseudorapidity_neutral; //only relevant for R hadrons
+  TH1D *histo_pseudorapidity_neutral; //only relevant for R hadrons - left in for staus (will just be empty - saves time changing code between datafiles)
 
 
   ////////////////////////////////////////  
@@ -104,6 +107,16 @@ private:
   TH1D *histo_muon_beta;
   TH1D *histo_muon_invbeta;
 
+  //////////////////////////////
+// HSCP XY projection histogram //
+  //////////////////////////////
+
+  TNtuple *hscpNTuple;
+  TH2D *histo_xyProjection;
+
+  ////////////////////////////////
+// Definitions of various inputs // 
+  //////////////////////////////
   edm::EDGetTokenT<edm::SimTrackContainer> inputSim;
   edm::EDGetTokenT<edm::SimVertexContainer> inputVtx;
   edm::EDGetTokenT<TrackingParticleCollection> inputTP;
@@ -188,14 +201,21 @@ void Projekt::beginJob()
 // PSEUDORAPIDITY HISTOGRAMS SPECIFYING MUON SYSTEM REGIONS //
   //////////////////////////////////////////////////////////
 
-  const Int_t nBins = 20;
+  const Int_t nBins = 20; //this method remains from a previous version of the code, could've been defined within histogram definition...
   Double_t edges[nBins+1] = {-2.1,-1.89,-1.68,-1.47,-1.26,-1.05,-0.84,-0.63,-0.42,-0.21,0,0.21,0.42,0.63,0.84,1.05,1.26,1.47,1.68,1.89,2.1};
   histo_pseudorapidity = new TH1D("histo_pseudorapidity","Charged HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
   histo_pseudorapidity_neutral = new TH1D("histo_pseudorapidity_neutral","Neutral HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
 
   //////////////////////////////////////////
-// KINEMATIC HISTOGRAMS FOR HSCPs AND MUONS //
-  /////////////////////////////////////////
+// HISTOGRAM FOR XY PROJECTION (HSCP ONLY) //
+  ////////////////////////////////////////
+
+  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF");
+  histo_xyProjection = new TH2D("histo_xyProjection","HSCP XY Projection of Tracks;X [cm];Y [cm]",3200,-800,800,3200,-800,800); //x,y,z positions of simhits are in cm (I think)
+
+  ////////////////////////////////////////////
+// KINEMATIC HISTOGRAMS for  HSCPs AND MUONS //
+  ///////////////////////////////////////////
 
   histo_pdgCount = new TH1D("histo_pdgCount","PID Count;PID;#Events",12,-2000000,2000000);
   histo_pdgCount_HSCP = new TH1D("histo_pdgCount_HSCP","PID Count for HSCP only;PID;#Events",2,-2000000,2000000);
@@ -240,6 +260,13 @@ void Projekt::endJob()
   histo_pseudorapidity_ratio->Write();
   histo_pseudorapidity_neutral_ratio->Write();
 
+
+  std::cout << "Event count: " << theEventCount << endl;  
+
+  hscpNTuple->Write();
+  hscpNTuple->Draw("x:y>>histo_xyProjection"); //using this method the resulting histogram is completely empty
+  histo_xyProjection->Write();
+
   histo_pdgCount->Write();
   histo_pdgCount_HSCP->Write();
 
@@ -263,6 +290,9 @@ void Projekt::endJob()
   
   delete histo_pdgCount;
   delete histo_pdgCount_HSCP;
+
+  delete hscpNTuple;
+  delete histo_xyProjection;
   
   delete histo_pseudorapidity;
   delete histo_pseudorapidity_neutral;
@@ -292,6 +322,7 @@ void Projekt::endJob()
 void Projekt::analyze(
     const edm::Event& ev, const edm::EventSetup& es){
   std::cout << " -------------------------------- HERE Cwiczenie::analyze "<< std::endl;
+  std::cout <<"*** Cwiczenie, analyze event: " << ev.id()<<" useful event count:"<<++theEventCount << std::endl;
  // bool debug = true;
 
 //  edm::Handle<vector<l1t::TrackerMuon> > gmtColl;
@@ -317,20 +348,43 @@ void Projekt::analyze(
 
   const std::vector<PSimHit> & simulatedHits = ev.get(inputHitsDT);
   std::cout <<"Number of associated simulated hits: "<<simulatedHits.size() << std::endl;
+
+  Int_t nlines = 0;
+
   for (std::vector<PSimHit>::const_iterator iter=simulatedHits.begin();iter<simulatedHits.end();iter++){
     const PSimHit & hit = *iter;
       std::cout << "--------------------------------------------------------------------------" << std::endl;
       std::cout << "LOCAL DET INFORMATION" << std::endl;
       std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
       std::cout << "GLOBAL DET INFORMATION"<< std::endl;
-      DTChamberId dtDetChamberId(hit.detUnitId());
+      DTChamberId dtDetChamberId(hit.detUnitId()); //defintion of chamber position in terms of wheels, superlayers, etc. 
       std::cout << "CHAMBER ID METHOD: " << dtDetChamberId << std::endl;
       DTLayerId dtDetLayerId(hit.detUnitId()); 
       std::cout << "LAYER ID METHOD: " << dtDetLayerId << std::endl;
-      GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
-      std::cout << "Detector position r: " << detPosition.perp() << " | phi: " << detPosition.phi() << " | z: " << detPosition.z() << endl;
-      std::cout <<"Hit position (chamber level): "<<globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition())
-          <<" | phi: "<<globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi() <<" | theta: "<<globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).theta() <<std::endl;
+
+//Definition of globsal position of detector in which hit recorded
+      //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
+
+
+      Int_t eventNr = theEventCount;
+	  Int_t pid = hit.particleType();
+      Int_t trackNr = hit.trackId();      
+      Double_t globalX = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).x();
+      std::cout << "globalX: " << globalX << std::endl;
+      Double_t globalY = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).y();
+      Double_t globalZ = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).z();
+      Double_t px = hit.momentumAtEntry().x();
+      Double_t py = hit.momentumAtEntry().y();
+      Double_t pz = hit.momentumAtEntry().z();
+      Double_t phi = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi();
+      Double_t eta = -log(tan(abs(phi)/2));
+      //detID is defined above, take dtDetChamberId - sufficient
+      Double_t TOF = hit.timeOfFlight();
+      
+      if(pid>1000000){
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,TOF);
+      nlines++;
+     }
   }
 
   for (std::vector<SimTrack>::const_iterator it=mySimTracks.begin(); it<mySimTracks.end(); it++) {
@@ -354,7 +408,9 @@ void Projekt::analyze(
 	}
 }
 
-
+    
+    
+    
 
 /*    bool muon = false;
     bool matched = false;
