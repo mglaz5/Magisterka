@@ -32,8 +32,14 @@
 #include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
 #include "Geometry/DTGeometry/interface/DTChamber.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
+#include "Geometry/CSCGeometry/interface/CSCChamber.h"
+#include "Geometry/CSCGeometry/interface/CSCLayer.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
+#include "Geometry/RPCGeometry/interface/RPCChamber.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/DTGeometry/interface/DTLayer.h"
 #include "Geometry/DTGeometry/interface/DTSuperLayer.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
 //
 
 
@@ -125,9 +131,12 @@ private:
 
 //My simHits contribution to the code:
   edm::EDGetTokenT<vector<PSimHit>> inputHitsDT;
+  edm::EDGetTokenT<vector<PSimHit>> inputHitsCSC;
+  edm::EDGetTokenT<vector<PSimHit>> inputHitsRPC;
   const edm::ESGetToken<GlobalTrackingGeometry, GlobalTrackingGeometryRecord> theGeometryToken;
   const edm::ESGetToken<DTGeometry, MuonGeometryRecord> theDTGeomToken;
-  //edm::EDGetTokenT<vector<PSimHit>> inputHitsRPC;
+  const edm::ESGetToken<CSCGeometry, MuonGeometryRecord> theCSCGeomToken;
+  const edm::ESGetToken<RPCGeometry, MuonGeometryRecord> theRPCGeomToken;
 
 
 };
@@ -159,7 +168,7 @@ const TrackingParticle & ancestor(const TrackingParticle & particle) {
 }
 
 Projekt::Projekt(const edm::ParameterSet& conf) 
-  : theConfig(conf), theEventCount(0), hscp_count(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes())
+  : theConfig(conf), theEventCount(0), hscp_count(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes()), theCSCGeomToken(esConsumes()), theRPCGeomToken(esConsumes())
 {
   cout <<" CTORXX" << endl;
 //  inputOMTF = consumes<l1t::RegionalMuonCandBxCollection>(theConfig.getParameter<edm::InputTag>("inputOMTF") );
@@ -170,8 +179,10 @@ Projekt::Projekt(const edm::ParameterSet& conf)
   inputTV  =   consumes<TrackingVertexCollection>(edm::InputTag("mix","MergedTrackTruth"));
   inputTV0 =   consumes<TrackingVertexCollection>(edm::InputTag("mix","InitialVertices"));
   inputGP  =  consumes< vector<reco::GenParticle> >(edm::InputTag("genParticles"));
-//Inlusion of simHits, firstly just from DT chambers, as suggested in email :)
+//Inlusion of simHits, firstly just from DT chambers, now for all chamber types (minus present GEMS)
   inputHitsDT = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonDTHits"));
+  inputHitsCSC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonCSCHits"));
+  inputHitsRPC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonRPCHits"));
   
  //I've had an epiphany that g4SimHits means Geant4 simulated hits... Note to self: order of input tags needs to be the same as in edmDumpEventContent
   //inputHitsRPC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonRPCHits"));
@@ -346,17 +357,27 @@ void Projekt::analyze(
 
   auto const & globalGeometry = es.getData(theGeometryToken);  
 
-  const std::vector<PSimHit> & simulatedHits = ev.get(inputHitsDT);
-  std::cout <<"Number of associated simulated hits: "<<simulatedHits.size() << std::endl;
+  const std::vector<PSimHit> & simDTHits = ev.get(inputHitsDT);
+  std::cout <<"Number of associated simulated DT hits: "<<simDTHits.size() << std::endl;
+
+  const std::vector<PSimHit> & simCSCHits = ev.get(inputHitsCSC);
+  std::cout <<"Number of associated simulated CSC hits: "<<simCSCHits.size() << std::endl;
+
+  const std::vector<PSimHit> & simRPCHits = ev.get(inputHitsRPC);
+  std::cout <<"Number of associated simulated RPC hits: "<<simRPCHits.size() << std::endl;
 
   Int_t nlines = 0;
 
-  for (std::vector<PSimHit>::const_iterator iter=simulatedHits.begin();iter<simulatedHits.end();iter++){
+  //////////////
+// DT CHAMBERS //
+  ////////////
+
+  for (std::vector<PSimHit>::const_iterator iter=simDTHits.begin();iter<simDTHits.end();iter++){
     const PSimHit & hit = *iter;
       std::cout << "--------------------------------------------------------------------------" << std::endl;
-      std::cout << "LOCAL DET INFORMATION" << std::endl;
+      std::cout << "LOCAL DT DETECTOR INFORMATION" << std::endl;
       std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
-      std::cout << "GLOBAL DET INFORMATION"<< std::endl;
+      std::cout << "GLOBAL DT DETECTOR INFORMATION"<< std::endl;
       DTChamberId dtDetChamberId(hit.detUnitId()); //defintion of chamber position in terms of wheels, superlayers, etc. 
       std::cout << "CHAMBER ID METHOD: " << dtDetChamberId << std::endl;
       DTLayerId dtDetLayerId(hit.detUnitId()); 
@@ -386,6 +407,89 @@ void Projekt::analyze(
       nlines++;
      }
   }
+
+  //////////////
+// CSC CHAMBERS //
+  ////////////
+
+  for (std::vector<PSimHit>::const_iterator iter2=simCSCHits.begin();iter2<simCSCHits.end();iter2++){
+    const PSimHit & hit = *iter2;
+      std::cout << "--------------------------------------------------------------------------" << std::endl;
+      std::cout << "LOCAL CSC DETECTOR INFORMATION" << std::endl;
+      std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
+      std::cout << "GLOBAL DET INFORMATION"<< std::endl;
+      CSCDetId cscDetId(hit.detUnitId());
+      std::cout << "CHAMBER ID: " << cscDetId << std::endl;
+
+//Definition of globsal position of detector in which hit recorded
+      //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
+
+
+      Int_t eventNr = theEventCount;
+	  Int_t pid = hit.particleType();
+      Int_t trackNr = hit.trackId();      
+      Double_t globalX = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).x();
+      Double_t globalY = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).y();
+      Double_t globalZ = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).z();
+      Double_t px = hit.momentumAtEntry().x();
+      Double_t py = hit.momentumAtEntry().y();
+      Double_t pz = hit.momentumAtEntry().z();
+      Double_t phi = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).phi();
+      Double_t eta = -log(tan(abs(phi)/2));
+      Double_t TOF = hit.timeOfFlight();
+     
+
+      if(pid>1000000){
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,TOF);
+      nlines++;
+     }
+  }
+
+  //////////////
+// RPC CHAMBERS //
+  //////////////
+
+  for (std::vector<PSimHit>::const_iterator iter3=simRPCHits.begin();iter3<simRPCHits.end();iter3++){
+    const PSimHit & hit = *iter3;
+      std::cout << "--------------------------------------------------------------------------" << std::endl;
+      std::cout << "LOCAL RPC DETECTOR INFORMATION" << std::endl;
+      std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
+      std::cout << "GLOBAL RPC DETECTOR INFORMATION"<< std::endl;
+      RPCDetId rpcDetId(hit.detUnitId());
+      std::cout << "CHAMBER ID: " << rpcDetId << std::endl;
+
+//Definition of globsal position of detector in which hit recorded
+      //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
+
+
+      Int_t eventNr = theEventCount;
+	  Int_t pid = hit.particleType();
+      Int_t trackNr = hit.trackId(); 
+      std::cout << "DEBUGGING (event nr, pid, tracknr): " << eventNr << ", " << pid << ", " << trackNr << endl;      
+      //std::cout<< globalGeometry.idToDet(rpcDetId)->position()<<std::endl; this doesn't work at all
+      //Double_t globalX = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).x();
+      //Double_t globalY = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).y();
+      //Double_t globalZ = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).z();
+      Double_t px = hit.momentumAtEntry().x();
+      Double_t py = hit.momentumAtEntry().y();
+      Double_t pz = hit.momentumAtEntry().z();
+      std::cout << "DEBUGGING (px, py, pz): " << px << ", " << py << ", " << pz << endl;      
+      Double_t phi = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).phi();
+      Double_t eta = -log(tan(abs(phi)/2));
+      Double_t TOF = hit.timeOfFlight();
+      std::cout << "DEBUGGING (phi, eta, TOF): " << phi << ", " << eta << ", " << TOF << endl;      
+      
+	  
+
+      /*if(pid>1000000){
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,rpcDetId,globalX,globalY,globalZ,TOF);
+      nlines++;
+     }*/
+  }
+
+  //////////////////////////
+// Simulated track analysis //
+  //////////////////////////
 
   for (std::vector<SimTrack>::const_iterator it=mySimTracks.begin(); it<mySimTracks.end(); it++) {
     const SimTrack & track = *it;
