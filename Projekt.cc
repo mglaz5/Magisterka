@@ -192,7 +192,7 @@ Projekt::Projekt(const edm::ParameterSet& conf)
   inputHitsCSC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonCSCHits"));
   inputHitsRPC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonRPCHits"));
   
- //I've had an epiphany that g4SimHits means Geant4 simulated hits... Note to self: order of input tags needs to be the same as in edmDumpEventContent
+ //Note to self: order of input tags needs to be the same as in edmDumpEventContent
 
 }
 
@@ -231,7 +231,7 @@ void Projekt::beginJob()
 
   //c1 = new TCanvas("c1","The Ntuple canvas",200,10,700,780);
   //pad1 = new TPad("pad1","This is pad1",0.02,0.52,0.48,0.98,21);
-  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF");
+  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF:L:TOFCALCULATED");
   histo_xyProjection = new TH2D("histo_xyProjection","HSCP XY Projection of Tracks;X [cm];Y [cm]",3200,-800,800,3200,-800,800); //x,y,z positions of simhits are in cm (I think)
 
   ////////////////////////////////////////////
@@ -412,9 +412,6 @@ void Projekt::analyze(
       Double_t eta = -log(tan(abs(phi)/2));
       //detID is defined above, take dtDetChamberId - sufficient
       Double_t tof = hit.timeOfFlight();
-    
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof);
-      nlines++;
      
 
   ////////////////////////////
@@ -435,6 +432,9 @@ void Projekt::analyze(
       std::cout << "TOF COMPARISON: " << std::endl;
       std::cout << "SIMULATION TOF: " << tof << std::endl;
       std::cout << "CALCULATED TOF: " << tofCalculated << std::endl;
+
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof,distanceL,tofCalculated);
+      nlines++;
   }
 }
 
@@ -442,7 +442,7 @@ void Projekt::analyze(
 // CSC CHAMBERS //
   ////////////
 
-  for (std::vector<PSimHit>::const_iterator iter2=simCSCHits.begin();iter2<simCSCHits.end();iter2++){
+ /* for (std::vector<PSimHit>::const_iterator iter2=simCSCHits.begin();iter2<simCSCHits.end();iter2++){
     const PSimHit & hit = *iter2;
       std::cout << "--------------------------------------------------------------------------" << std::endl;
       std::cout << "LOCAL CSC DETECTOR INFORMATION" << std::endl;
@@ -473,7 +473,7 @@ void Projekt::analyze(
       hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof);
       nlines++;
      }
-  }
+  }*/
 
   //////////////
 // RPC CHAMBERS //
