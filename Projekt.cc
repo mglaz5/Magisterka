@@ -47,8 +47,13 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TNtuple.h"
+#include "TMath.h"
+#include "TCanvas.h"
 #include "TLatex.h"
+#include "TStyle.h"
 #include "TFile.h"
+#include "TStyle.h"
+#include "TROOT.h"
 #include <sstream>
 
 
@@ -77,6 +82,7 @@ private:
   edm::ParameterSet theConfig;
   unsigned int theEventCount;
   unsigned int hscp_count;
+  unsigned int nlines;
   //added variables
   TFile *myRootFile;
 
@@ -118,6 +124,8 @@ private:
   //////////////////////////////
 
   TNtuple *hscpNTuple;
+  TCanvas *c1;
+  TPad *pad1;
   TH2D *histo_xyProjection;
 
   ////////////////////////////////
@@ -168,7 +176,7 @@ const TrackingParticle & ancestor(const TrackingParticle & particle) {
 }
 
 Projekt::Projekt(const edm::ParameterSet& conf) 
-  : theConfig(conf), theEventCount(0), hscp_count(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes()), theCSCGeomToken(esConsumes()), theRPCGeomToken(esConsumes())
+  : theConfig(conf), theEventCount(0), hscp_count(0), nlines(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes()), theCSCGeomToken(esConsumes()), theRPCGeomToken(esConsumes())
 {
   cout <<" CTORXX" << endl;
 //  inputOMTF = consumes<l1t::RegionalMuonCandBxCollection>(theConfig.getParameter<edm::InputTag>("inputOMTF") );
@@ -185,7 +193,7 @@ Projekt::Projekt(const edm::ParameterSet& conf)
   inputHitsRPC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonRPCHits"));
   
  //I've had an epiphany that g4SimHits means Geant4 simulated hits... Note to self: order of input tags needs to be the same as in edmDumpEventContent
-  //inputHitsRPC = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonRPCHits"));
+
 }
 
 
@@ -221,6 +229,8 @@ void Projekt::beginJob()
 // HISTOGRAM FOR XY PROJECTION (HSCP ONLY) //
   ////////////////////////////////////////
 
+  //c1 = new TCanvas("c1","The Ntuple canvas",200,10,700,780);
+  //pad1 = new TPad("pad1","This is pad1",0.02,0.52,0.48,0.98,21);
   hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF");
   histo_xyProjection = new TH2D("histo_xyProjection","HSCP XY Projection of Tracks;X [cm];Y [cm]",3200,-800,800,3200,-800,800); //x,y,z positions of simhits are in cm (I think)
 
@@ -231,13 +241,13 @@ void Projekt::beginJob()
   histo_pdgCount = new TH1D("histo_pdgCount","PID Count;PID;#Events",12,-2000000,2000000);
   histo_pdgCount_HSCP = new TH1D("histo_pdgCount_HSCP","PID Count for HSCP only;PID;#Events",2,-2000000,2000000);
 
-  histo_stau_pt = new TH1D("histo_stau_pt","Generated stau p_{T}; Generated p_{T} [GeV]; #Events",30,0.,3000.);
-  histo_stau_eta = new TH1D("histo_stau_eta","Generated stau #eta; Generated #eta; #Events",100,-5.,5.);
-  histo_stau_pl = new TH1D("histo_stau_pl","Generated stau p_{L};Genereated p_{L} [GeV]; #Events",60,-3000.,3000.);
-  histo_stau_p = new TH1D("histo_stau_p","Generated stau p;Generated p [GeV];#Events",50,0.,5000.);
-  histo_stau_phi = new TH1D("histo_stau_phi","Generated stau #phi;Generated #phi [rad];#Events",37,0.,2*M_PI);
-  histo_stau_beta = new TH1D("histo_stau_beta","Generated stau #beta;Generated #beta;#Events",20,0.,1.);
-  histo_stau_invbeta = new TH1D("histo_stau_invbeta","Generated stau 1/#beta;Generated 1/#beta;#Events",40,1.,10.);
+  histo_stau_pt = new TH1D("histo_stau_pt","Generated HSCP p_{T}; Generated p_{T} [GeV]; #Events",30,0.,3000.);
+  histo_stau_eta = new TH1D("histo_stau_eta","Generated HSCP #eta; Generated #eta; #Events",100,-5.,5.);
+  histo_stau_pl = new TH1D("histo_stau_pl","Generated HSCP p_{L};Genereated p_{L} [GeV]; #Events",60,-3000.,3000.);
+  histo_stau_p = new TH1D("histo_stau_p","Generated HSCP p;Generated p [GeV];#Events",50,0.,5000.);
+  histo_stau_phi = new TH1D("histo_stau_phi","Generated HSCP #phi;Generated #phi [rad];#Events",37,0.,2*M_PI);
+  histo_stau_beta = new TH1D("histo_stau_beta","Generated HSCP #beta;Generated #beta;#Events",20,0.,1.);
+  histo_stau_invbeta = new TH1D("histo_stau_invbeta","Generated HSCP 1/#beta;Generated 1/#beta;#Events",40,1.,10.);
 
   histo_muon_pt = new TH1D("histo_muon_pt","Genereated muon p_{T}; Generated p_{T} [GeV]; #Events",100,0.,100.);
   histo_muon_eta = new TH1D("histo_muon_eta","Generated muon #eta; Generated #eta; #Events",100,-5.,5.);
@@ -273,6 +283,7 @@ void Projekt::endJob()
 
 
   std::cout << "Event count: " << theEventCount << endl;  
+  std::cout << "Length of nTuple: " << nlines << std::endl;
 
   hscpNTuple->Write();
   hscpNTuple->Draw("x:y>>histo_xyProjection"); //using this method the resulting histogram is completely empty
@@ -366,7 +377,6 @@ void Projekt::analyze(
   const std::vector<PSimHit> & simRPCHits = ev.get(inputHitsRPC);
   std::cout <<"Number of associated simulated RPC hits: "<<simRPCHits.size() << std::endl;
 
-  Int_t nlines = 0;
 
   //////////////
 // DT CHAMBERS //
@@ -374,6 +384,7 @@ void Projekt::analyze(
 
   for (std::vector<PSimHit>::const_iterator iter=simDTHits.begin();iter<simDTHits.end();iter++){
     const PSimHit & hit = *iter;
+     if(hit.particleType()>1000000){
       std::cout << "--------------------------------------------------------------------------" << std::endl;
       std::cout << "LOCAL DT DETECTOR INFORMATION" << std::endl;
       std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
@@ -400,13 +411,32 @@ void Projekt::analyze(
       Double_t phi = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi();
       Double_t eta = -log(tan(abs(phi)/2));
       //detID is defined above, take dtDetChamberId - sufficient
-      Double_t TOF = hit.timeOfFlight();
-      
-      if(pid>1000000){
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,TOF);
+      Double_t tof = hit.timeOfFlight();
+    
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof);
       nlines++;
-     }
+     
+
+  ////////////////////////////
+// TOF analysis (preliminary) // 
+  ////////////////////////////
+	  Double_t beta = hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(200*200)); //.pabs() calculates the length of the vector pointing to the hit from (0,0,0) 
+																	//mass needs to be changed everytime datafile changed!
+																	//mass and momenta in GeV (no unit conversion required)
+
+	  std::cout << "Momentum vector magnitude: " << hit.pabs() << ", Beta: " << beta << std::endl;
+      
+	  Double_t distanceL = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).mag()*0.01; // in m
+
+      std::cout << "test c value: " << TMath::C() << std::endl;
+      Double_t tofCalculated = distanceL*1e9/(beta*TMath::C());
+      //Double_t tofCalculated = (distanceL/(beta*TMath::C())-(distanceL/TMath::C()))*1e9; //conversion of distance to metres, C is in m/s, so tof here is in s           								   							      //conversion of tof to ns by multiplying by 10^9
+
+      std::cout << "TOF COMPARISON: " << std::endl;
+      std::cout << "SIMULATION TOF: " << tof << std::endl;
+      std::cout << "CALCULATED TOF: " << tofCalculated << std::endl;
   }
+}
 
   //////////////
 // CSC CHAMBERS //
@@ -436,11 +466,11 @@ void Projekt::analyze(
       Double_t pz = hit.momentumAtEntry().z();
       Double_t phi = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).phi();
       Double_t eta = -log(tan(abs(phi)/2));
-      Double_t TOF = hit.timeOfFlight();
+      Double_t tof = hit.timeOfFlight();
      
 
       if(pid>1000000){
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,TOF);
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof);
       nlines++;
      }
   }
@@ -466,7 +496,6 @@ void Projekt::analyze(
 	  Int_t pid = hit.particleType();
       Int_t trackNr = hit.trackId(); 
       std::cout << "DEBUGGING (event nr, pid, tracknr): " << eventNr << ", " << pid << ", " << trackNr << endl;      
-      //std::cout<< globalGeometry.idToDet(rpcDetId)->position()<<std::endl; this doesn't work at all
       //Double_t globalX = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).x();
       //Double_t globalY = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).y();
       //Double_t globalZ = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).z();
@@ -474,15 +503,15 @@ void Projekt::analyze(
       Double_t py = hit.momentumAtEntry().y();
       Double_t pz = hit.momentumAtEntry().z();
       std::cout << "DEBUGGING (px, py, pz): " << px << ", " << py << ", " << pz << endl;      
-      Double_t phi = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).phi();
-      Double_t eta = -log(tan(abs(phi)/2));
-      Double_t TOF = hit.timeOfFlight();
-      std::cout << "DEBUGGING (phi, eta, TOF): " << phi << ", " << eta << ", " << TOF << endl;      
+      //Double_t phi = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).phi();
+      //Double_t eta = -log(tan(abs(phi)/2));
+      Double_t tof = hit.timeOfFlight();
+      //std::cout << "DEBUGGING (phi, eta, TOF): " << "Phi N/A" << ", " << eta << ", " << TOF << endl;      
       
 	  
 
       /*if(pid>1000000){
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,rpcDetId,globalX,globalY,globalZ,TOF);
+      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,rpcDetId,globalX,globalY,globalZ,tof);
       nlines++;
      }*/
   }
