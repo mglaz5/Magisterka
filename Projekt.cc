@@ -231,7 +231,7 @@ void Projekt::beginJob()
 
   //c1 = new TCanvas("c1","The Ntuple canvas",200,10,700,780);
   //pad1 = new TPad("pad1","This is pad1",0.02,0.52,0.48,0.98,21);
-  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF:L:TOFCALCULATED");
+  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF:L:TOFCALCULATED:TOFCALCULATEDBETA1");
   histo_xyProjection = new TH2D("histo_xyProjection","HSCP XY Projection of Tracks;X [cm];Y [cm]",3200,-800,800,3200,-800,800); //x,y,z positions of simhits are in cm (I think)
 
   ////////////////////////////////////////////
