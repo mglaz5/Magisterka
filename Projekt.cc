@@ -374,10 +374,6 @@ void Projekt::analyze(
   const std::vector<PSimHit> & simCSCHits = ev.get(inputHitsCSC);
   std::cout <<"Number of associated simulated CSC hits: "<<simCSCHits.size() << std::endl;
 
-  const std::vector<PSimHit> & simRPCHits = ev.get(inputHitsRPC);
-  std::cout <<"Number of associated simulated RPC hits: "<<simRPCHits.size() << std::endl;
-
-
   //////////////
 // DT CHAMBERS //
   ////////////
@@ -385,56 +381,58 @@ void Projekt::analyze(
   for (std::vector<PSimHit>::const_iterator iter=simDTHits.begin();iter<simDTHits.end();iter++){
     const PSimHit & hit = *iter;
      if(hit.particleType()>1000000){
-      std::cout << "--------------------------------------------------------------------------" << std::endl;
-      std::cout << "LOCAL DT DETECTOR INFORMATION" << std::endl;
-      std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
-      std::cout << "GLOBAL DT DETECTOR INFORMATION"<< std::endl;
-      DTChamberId dtDetChamberId(hit.detUnitId()); //defintion of chamber position in terms of wheels, superlayers, etc. 
-      std::cout << "CHAMBER ID METHOD: " << dtDetChamberId << std::endl;
-      DTLayerId dtDetLayerId(hit.detUnitId()); 
-      std::cout << "LAYER ID METHOD: " << dtDetLayerId << std::endl;
+       std::cout << "--------------------------------------------------------------------------" << std::endl;
+       std::cout << "LOCAL DT DETECTOR INFORMATION" << std::endl;
+       std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
+       std::cout << "GLOBAL DT DETECTOR INFORMATION"<< std::endl;
+       
+       DTChamberId dtDetChamberId(hit.detUnitId()); //defintion of chamber position in terms of wheels, superlayers, etc. 
+       std::cout << "CHAMBER ID METHOD: " << dtDetChamberId << std::endl;
+       DTLayerId dtDetLayerId(hit.detUnitId()); 
+       std::cout << "LAYER ID METHOD: " << dtDetLayerId << std::endl;
 
 //Definition of globsal position of detector in which hit recorded
       //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
 
 
-      Int_t eventNr = theEventCount;
-	  Int_t pid = hit.particleType();
-      Int_t trackNr = hit.trackId();      
-      Double_t globalX = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).x();
-      std::cout << "globalX: " << globalX << std::endl;
-      Double_t globalY = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).y();
-      Double_t globalZ = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).z();
-      Double_t px = hit.momentumAtEntry().x();
-      Double_t py = hit.momentumAtEntry().y();
-      Double_t pz = hit.momentumAtEntry().z();
-      Double_t phi = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi();
-      Double_t eta = -log(tan(abs(phi)/2));
-      //detID is defined above, take dtDetChamberId - sufficient
-      Double_t tof = hit.timeOfFlight();
-     
+       Int_t eventNr = theEventCount;
+	   Int_t pid = hit.particleType();
+       Int_t trackNr = hit.trackId();      
+       Double_t globalX = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).x();
+       std::cout << "globalX: " << globalX << std::endl;
+       Double_t globalY = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).y();
+       Double_t globalZ = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).z();
+       Double_t px = hit.momentumAtEntry().x();
+       Double_t py = hit.momentumAtEntry().y();
+       Double_t pz = hit.momentumAtEntry().z();
+       Double_t phi = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi();
+       Double_t eta = -log(tan(abs(phi)/2));
+       //detID is defined above, take dtDetChamberId - sufficient
+       Double_t tof = hit.timeOfFlight();
 
   ////////////////////////////
 // TOF analysis (preliminary) // 
   ////////////////////////////
-	  Double_t beta = hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(200*200)); //.pabs() calculates the length of the vector pointing to the hit from (0,0,0) 
+
+	   Double_t beta = hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(200*200)); //.pabs() calculates the length of the vector pointing to the hit from (0,0,0) 
 																	//mass needs to be changed everytime datafile changed!
 																	//mass and momenta in GeV (no unit conversion required)
 
-	  std::cout << "Momentum vector magnitude: " << hit.pabs() << ", Beta: " << beta << std::endl;
+	   std::cout << "Momentum vector magnitude: " << hit.pabs() << ", Beta: " << beta << std::endl;
       
-	  Double_t distanceL = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).mag()*0.01; // in m
+	   Double_t distanceL = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).mag()*0.01; // in m
 
-      std::cout << "test c value: " << TMath::C() << std::endl;
-      Double_t tofCalculated = distanceL*1e9/(beta*TMath::C());
-      //Double_t tofCalculated = (distanceL/(beta*TMath::C())-(distanceL/TMath::C()))*1e9; //conversion of distance to metres, C is in m/s, so tof here is in s           								   							      //conversion of tof to ns by multiplying by 10^9
+       Double_t tofCalculated = distanceL*1e9/(beta*TMath::C()); //1e9 to convert to ns
+       //The following calculated TOF as if the particle was a muon, i.e. assuming that beta=1 (relativistic paticle)
+       Double_t tofCalculatedBeta1 = distanceL*1e9/TMath::C();
 
-      std::cout << "TOF COMPARISON: " << std::endl;
-      std::cout << "SIMULATION TOF: " << tof << std::endl;
-      std::cout << "CALCULATED TOF: " << tofCalculated << std::endl;
+       std::cout << "TOF COMPARISON: " << std::endl;
+       std::cout << "SIMULATION TOF: " << tof << std::endl;
+       std::cout << "CALCULATED TOF: " << tofCalculated << std::endl;
+       std::cout << "TOF W/ BETA=1 : " << tofCalculatedBeta1 << std:: endl;
 
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof,distanceL,tofCalculated);
-      nlines++;
+       hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof,distanceL,tofCalculated, tofCalculatedBeta1);
+       nlines++;
   }
 }
 
@@ -442,79 +440,66 @@ void Projekt::analyze(
 // CSC CHAMBERS //
   ////////////
 
- /* for (std::vector<PSimHit>::const_iterator iter2=simCSCHits.begin();iter2<simCSCHits.end();iter2++){
-    const PSimHit & hit = *iter2;
-      std::cout << "--------------------------------------------------------------------------" << std::endl;
-      std::cout << "LOCAL CSC DETECTOR INFORMATION" << std::endl;
-      std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
-      std::cout << "GLOBAL DET INFORMATION"<< std::endl;
-      CSCDetId cscDetId(hit.detUnitId());
-      std::cout << "CHAMBER ID: " << cscDetId << std::endl;
+  for (std::vector<PSimHit>::const_iterator iter=simCSCHits.begin();iter<simCSCHits.end();iter++){
+    const PSimHit & hit = *iter;
+      if(hit.particleType()>1000000){
+        std::cout << "--------------------------------------------------------------------------" << std::endl;
+        std::cout << "LOCAL CSC DETECTOR INFORMATION" << std::endl;
+        std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
+        std::cout << "GLOBAL DET INFORMATION"<< std::endl;
+        CSCDetId cscDetId(hit.detUnitId());
+        std::cout << "CHAMBER ID: " << cscDetId << std::endl;
 
 //Definition of globsal position of detector in which hit recorded
       //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
 
+        Int_t eventNr = theEventCount;
+	    Int_t pid = hit.particleType();
+        Int_t trackNr = hit.trackId();      
+        Double_t globalX = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).x();
+        Double_t globalY = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).y();
+        Double_t globalZ = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).z();
+        Double_t px = hit.momentumAtEntry().x();
+        Double_t py = hit.momentumAtEntry().y();
+        Double_t pz = hit.momentumAtEntry().z();
+        Double_t phi = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).phi();
+        Double_t eta = -log(tan(abs(phi)/2));
+        Double_t tof = hit.timeOfFlight();
+       
+  ////////////////////////////
+// TOF analysis (preliminary) // 
+  ////////////////////////////
 
-      Int_t eventNr = theEventCount;
-	  Int_t pid = hit.particleType();
-      Int_t trackNr = hit.trackId();      
-      Double_t globalX = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).x();
-      Double_t globalY = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).y();
-      Double_t globalZ = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).z();
-      Double_t px = hit.momentumAtEntry().x();
-      Double_t py = hit.momentumAtEntry().y();
-      Double_t pz = hit.momentumAtEntry().z();
-      Double_t phi = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).phi();
-      Double_t eta = -log(tan(abs(phi)/2));
-      Double_t tof = hit.timeOfFlight();
-     
+	    Double_t beta = hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(200*200)); //.pabs() calculates the length of the vector pointing to the hit from (0,0,0) 
+																	//mass needs to be changed everytime datafile changed!
+																	//mass and momenta in GeV (no unit conversion required)
 
-      if(pid>1000000){
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof);
-      nlines++;
+	    std::cout << "Momentum vector magnitude: " << hit.pabs() << ", Beta: " << beta << std::endl;
+      
+	    Double_t distanceL = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).mag()*0.01; // in m
+
+        Double_t tofCalculated = distanceL*1e9/(beta*TMath::C()); //1e9 to convert to ns
+        //The following calculated TOF as if the particle was a muon, i.e. assuming that beta=1 (relativistic paticle)
+        Double_t tofCalculatedBeta1 = distanceL*1e9/TMath::C();
+        
+        std::cout << "TOF COMPARISON: " << std::endl;
+        std::cout << "SIMULATION TOF: " << tof << std::endl;
+        std::cout << "CALCULATED TOF: " << tofCalculated << std::endl; 
+        std::cout << "TOF W/ BETA=1 : " << tofCalculatedBeta1 << std:: endl;
+
+
+
+
+        hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof,distanceL, tofCalculated, tofCalculatedBeta1);
+        nlines++;
      }
-  }*/
+  }
 
   //////////////
 // RPC CHAMBERS //
   //////////////
 
-  for (std::vector<PSimHit>::const_iterator iter3=simRPCHits.begin();iter3<simRPCHits.end();iter3++){
-    const PSimHit & hit = *iter3;
-      std::cout << "--------------------------------------------------------------------------" << std::endl;
-      std::cout << "LOCAL RPC DETECTOR INFORMATION" << std::endl;
-      std::cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << std::endl;
-      std::cout << "GLOBAL RPC DETECTOR INFORMATION"<< std::endl;
-      RPCDetId rpcDetId(hit.detUnitId());
-      std::cout << "CHAMBER ID: " << rpcDetId << std::endl;
-
-//Definition of globsal position of detector in which hit recorded
-      //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
-
-
-      Int_t eventNr = theEventCount;
-	  Int_t pid = hit.particleType();
-      Int_t trackNr = hit.trackId(); 
-      std::cout << "DEBUGGING (event nr, pid, tracknr): " << eventNr << ", " << pid << ", " << trackNr << endl;      
-      //Double_t globalX = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).x();
-      //Double_t globalY = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).y();
-      //Double_t globalZ = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).z();
-      Double_t px = hit.momentumAtEntry().x();
-      Double_t py = hit.momentumAtEntry().y();
-      Double_t pz = hit.momentumAtEntry().z();
-      std::cout << "DEBUGGING (px, py, pz): " << px << ", " << py << ", " << pz << endl;      
-      //Double_t phi = globalGeometry.idToDet(rpcDetId)->toGlobal(hit.localPosition()).phi();
-      //Double_t eta = -log(tan(abs(phi)/2));
-      Double_t tof = hit.timeOfFlight();
-      //std::cout << "DEBUGGING (phi, eta, TOF): " << "Phi N/A" << ", " << eta << ", " << TOF << endl;      
-      
-	  
-
-      /*if(pid>1000000){
-      hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,rpcDetId,globalX,globalY,globalZ,tof);
-      nlines++;
-     }*/
-  }
+  //Removed for simulated tracks; while RPCs are good for fast responses, they have lower granularity for both time and space to be used for this
 
   //////////////////////////
 // Simulated track analysis //
