@@ -123,10 +123,8 @@ private:
 // HSCP XY projection histogram //
   //////////////////////////////
 
-  TNtuple *hscpNTuple;
-  TCanvas *c1;
-  TPad *pad1;
-  TH2D *histo_xyProjection;
+  TNtuple *hscpNTuple_tof;
+  TNtuple *hscpNTuple_localGlobal;
 
   ////////////////////////////////
 // Definitions of various inputs // 
@@ -225,14 +223,12 @@ void Projekt::beginJob()
   histo_pseudorapidity = new TH1D("histo_pseudorapidity","Charged HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
   histo_pseudorapidity_neutral = new TH1D("histo_pseudorapidity_neutral","Neutral HSCP count in MTF ranges;Simulated #eta;#Events",nBins,edges);
 
-  //////////////////////////////////////////
-// HISTOGRAM FOR XY PROJECTION (HSCP ONLY) //
-  ////////////////////////////////////////
+  ////////////////////
+// NTUPLES (HSCP ONLY) //
+  ////////////////////
 
-  //c1 = new TCanvas("c1","The Ntuple canvas",200,10,700,780);
-  //pad1 = new TPad("pad1","This is pad1",0.02,0.52,0.48,0.98,21);
-  hscpNTuple = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:px:py:pz:eta:detID:x:y:z:TOF:L:TOFCALCULATED:TOFCALCULATEDBETA1");
-  histo_xyProjection = new TH2D("histo_xyProjection","HSCP XY Projection of Tracks;X [cm];Y [cm]",3200,-800,800,3200,-800,800); //x,y,z positions of simhits are in cm (I think)
+  hscpNTuple_tof = new TNtuple("hscpNTuple", "hscpNTuple", "Event:PID:Track#:station:px:py:pz:eta:detID:x:y:z:TOFOFTRACK:L:TOFCALCULATED");
+  hscpNTuple_localGlobal = new TNtuple("hscpNTuple_localGlobal", "hscpNTuple_localGlobal","Event:Chamber:PID:Track#:p:ptTrack:eta:betaTrack:x_global:x_local:y_global:y_local:z_global:z_local:L:TOFOFTRACK");
 
   ////////////////////////////////////////////
 // KINEMATIC HISTOGRAMS for  HSCPs AND MUONS //
@@ -285,9 +281,8 @@ void Projekt::endJob()
   std::cout << "Event count: " << theEventCount << endl;  
   std::cout << "Length of nTuple: " << nlines << std::endl;
 
-  hscpNTuple->Write();
-  hscpNTuple->Draw("x:y>>histo_xyProjection"); //using this method the resulting histogram is completely empty
-  histo_xyProjection->Write();
+  hscpNTuple_tof->Write();
+  hscpNTuple_localGlobal->Write();
 
   histo_pdgCount->Write();
   histo_pdgCount_HSCP->Write();
@@ -313,8 +308,8 @@ void Projekt::endJob()
   delete histo_pdgCount;
   delete histo_pdgCount_HSCP;
 
-  delete hscpNTuple;
-  delete histo_xyProjection;
+  delete hscpNTuple_tof;
+  delete hscpNTuple_localGlobal;
   
   delete histo_pseudorapidity;
   delete histo_pseudorapidity_neutral;
@@ -396,15 +391,21 @@ void Projekt::analyze(
 
 
        Int_t eventNr = theEventCount;
-	   Int_t pid = hit.particleType();
-       Int_t trackNr = hit.trackId();      
+	     Int_t pid = hit.particleType();
+       Int_t trackNr = hit.trackId(); 
+       Int_t subDetectorId = dtDetLayerId.subdetId();
+       Int_t station = dtDetChamberId.station();     
+       Double_t localX = hit.localPosition().x();
+       Double_t localY = hit.localPosition().y();
+       Double_t localZ = hit.localPosition().z();
        Double_t globalX = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).x();
-       std::cout << "globalX: " << globalX << std::endl;
        Double_t globalY = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).y();
        Double_t globalZ = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).z();
+       Double_t p = hit.momentumAtEntry().mag();
        Double_t px = hit.momentumAtEntry().x();
        Double_t py = hit.momentumAtEntry().y();
        Double_t pz = hit.momentumAtEntry().z();
+       Double_t pt = sqrt((px*px)+(py*py));
        Double_t phi = globalGeometry.idToDet(dtDetChamberId)->toGlobal(hit.localPosition()).phi();
        Double_t eta = -log(tan(abs(phi)/2));
        //detID is defined above, take dtDetChamberId - sufficient
@@ -426,12 +427,12 @@ void Projekt::analyze(
        //The following calculated TOF as if the particle was a muon, i.e. assuming that beta=1 (relativistic paticle)
        Double_t tofCalculatedBeta1 = distanceL*1e9/TMath::C();
 
-       std::cout << "TOF COMPARISON: " << std::endl;
-       std::cout << "SIMULATION TOF: " << tof << std::endl;
-       std::cout << "CALCULATED TOF: " << tofCalculated << std::endl;
-       std::cout << "TOF W/ BETA=1 : " << tofCalculatedBeta1 << std:: endl;
+  ////////////////
+// Filling nTuples //
+  ////////////////
 
-       hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof,distanceL,tofCalculated, tofCalculatedBeta1);
+       hscpNTuple_tof->Fill(eventNr,pid,trackNr,station,px,py,pz,eta,dtDetChamberId,globalX,globalY,globalZ,tof,distanceL,tofCalculated);
+       hscpNTuple_localGlobal->Fill(eventNr,subDetectorId,pid,trackNr,p,pt,eta,beta,globalX,localX,globalY,localY,globalZ,localZ);
        nlines++;
   }
 }
@@ -449,19 +450,21 @@ void Projekt::analyze(
         std::cout << "GLOBAL DET INFORMATION"<< std::endl;
         CSCDetId cscDetId(hit.detUnitId());
         std::cout << "CHAMBER ID: " << cscDetId << std::endl;
-
 //Definition of globsal position of detector in which hit recorded
       //GlobalPoint detPosition = globalGeometry.idToDet(dtDetChamberId)->position();
 
         Int_t eventNr = theEventCount;
-	    Int_t pid = hit.particleType();
-        Int_t trackNr = hit.trackId();      
+	      Int_t pid = hit.particleType();
+        Int_t trackNr = hit.trackId();  
+        Int_t station = cscDetId.station();
+        Int_t subDetectorId = cscDetId.subdetId();
         Double_t globalX = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).x();
         Double_t globalY = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).y();
         Double_t globalZ = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).z();
         Double_t px = hit.momentumAtEntry().x();
         Double_t py = hit.momentumAtEntry().y();
         Double_t pz = hit.momentumAtEntry().z();
+        Double_t pt = sqrt((px*px)+(py*py));
         Double_t phi = globalGeometry.idToDet(cscDetId)->toGlobal(hit.localPosition()).phi();
         Double_t eta = -log(tan(abs(phi)/2));
         Double_t tof = hit.timeOfFlight();
@@ -482,15 +485,12 @@ void Projekt::analyze(
         //The following calculated TOF as if the particle was a muon, i.e. assuming that beta=1 (relativistic paticle)
         Double_t tofCalculatedBeta1 = distanceL*1e9/TMath::C();
         
-        std::cout << "TOF COMPARISON: " << std::endl;
-        std::cout << "SIMULATION TOF: " << tof << std::endl;
-        std::cout << "CALCULATED TOF: " << tofCalculated << std::endl; 
-        std::cout << "TOF W/ BETA=1 : " << tofCalculatedBeta1 << std:: endl;
+  ////////////////
+// Filling nTuples //
+  ////////////////
 
-
-
-
-        hscpNTuple->Fill(eventNr,pid,trackNr,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof,distanceL, tofCalculated, tofCalculatedBeta1);
+        hscpNTuple_tof->Fill(eventNr,pid,trackNr,station,px,py,pz,eta,cscDetId,globalX,globalY,globalZ,tof,distanceL,tofCalculated);
+        //hscpNTuple_localGlobal->Fill(eventNr,pid,trackNr,);
         nlines++;
      }
   }
