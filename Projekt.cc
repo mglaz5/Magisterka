@@ -565,9 +565,12 @@ void Projekt::analyze(
 
       Double_t distanceBetweenHits = sqrt(((hitPositionX-prevHitPositionX)*(hitPositionX-prevHitPositionX)) 
                                                     + ((hitPositionY-prevHitPositionY)*(hitPositionY-prevHitPositionY))
-                                                        +((hitPositionZ-prevHitPositionZ)*(hitPositionZ-prevHitPositionZ)))*0.01;                                             
+                                                        +((hitPositionZ-prevHitPositionZ)*(hitPositionZ-prevHitPositionZ)))*0.01;             
 
-      std::cout << "Distance between current hit and previous hit: " << distanceBetweenHits << std::endl;     
+      Double_t distanceAttempt2 = (sqrt((hitPositionX*hitPositionX)+(hitPositionY*hitPositionY)+(hitPositionZ*hitPositionZ))
+                                    - sqrt((prevHitPositionX*prevHitPositionX)+(prevHitPositionY*prevHitPositionY)+(prevHitPositionZ*prevHitPositionZ)))*0.01;
+
+      std::cout << "Distance between current hit and previous hit: " << distanceBetweenHits << " , or! " << distanceAttempt2 << " m" << std::endl;     
       
       Double_t betaHitPrevHit = prevHit.pabs()/sqrt((prevHit.pabs()*prevHit.pabs())+(hscpMass*hscpMass))
                                         - hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(hscpMass*hscpMass));
@@ -575,7 +578,7 @@ void Projekt::analyze(
 
       Double_t tofHitPrevHit = distanceBetweenHits*1e9/(prevHit.pabs()/sqrt((prevHit.pabs()*prevHit.pabs())+(hscpMass*hscpMass))*TMath::C());
 
-      std::cout << "Difference in TOF between current and previous hits = " << tofHitPrevHit << " ns" << std::endl;
+      std::cout << "TOF between current and previous hits = " << tofHitPrevHit << " ns" << std::endl;
       std::cout << "debug" << std::endl;
 
      //nTuple parameters: Event:Track#:Station:Hit#:DistanceBetweenHits:BetaBetweenHits:TOFBetweenHits
