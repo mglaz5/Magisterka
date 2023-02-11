@@ -37,7 +37,7 @@ inputCommands=cms.untracked.vstring( #Added to avoid problematic library for FEV
 )
 )
 #process.source.fileNames = files
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1)) #remember to change to -1! If 1, I was testing something
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(5)) #remember to change to -1! If 1, I was testing something
 
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('Configuration.Geometry.GeometryDB_cff')
