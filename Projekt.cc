@@ -171,6 +171,7 @@ typedef struct{
   Double_t eta;
   Double_t p;
   Double_t invbeta;
+  Double_t deltaR;
 }GMTMuonData;
 
 //object definition
@@ -365,16 +366,15 @@ void Projekt::beginJob()
 
   const Int_t binsINVB = 19;
   Double_t binsINVBEdges[binsINVB+1] = {1.,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.2,2.4,2.6,2.8,3.0,3.5,4.0,5.0,6.0};
+  histoPtEfficiency = new TEfficiency("histoPtEfficiency",";p_{T} [GeV];#epsilon",binsPT,binsPTEdges);
+  histoPEfficiency = new TEfficiency("histoPEfficiency", ";p [GeV];#epsilon", binsP, binsPEdges);
+  histoEtaEfficiency = new TEfficiency("histoEtaEfficiency", ";#eta;#epsilon", 100, -2.8, 2.8);
+  histoInvbetaEfficiency = new TEfficiency("histoInvbetaEfficiency", ";1/#beta;#epsilon", binsINVB, binsINVBEdges);
 
-  histoPtEfficiency = new TEfficiency("histoPtEfficiency",";p_{T} [GeV];#epsilon_{RECO}",binsPT,binsPTEdges);
-  histoPEfficiency = new TEfficiency("histoPEfficiency", ";p [GeV];#epsilon_{RECO}", binsP, binsPEdges);
-  histoEtaEfficiency = new TEfficiency("histoEtaEfficiency", ";#eta;#epsilon_{RECO}", 100, -2.8, 2.8);
-  histoInvbetaEfficiency = new TEfficiency("histoInvbetaEfficiency", ";1/#beta;#epsilon_{RECO}", binsINVB, binsINVBEdges);
-
-  histoPtEfficiencyL1T = new TEfficiency("histoPtEfficiencyL1T",";p_{T} [GeV];#epsilon_{RECO}", binsPT, binsPTEdges);
-  histoPEfficiencyL1T = new TEfficiency("histoPEfficiencyL1T", ";p [GeV];#epsilon_{RECO}", binsP, binsPEdges);
-  histoEtaEfficiencyL1T = new TEfficiency("histoEtaEfficiencyL1T", ";#eta;#epsilon_{RECO}", 100, -2.8, 2.8);
-  histoInvbetaEfficiencyL1T = new TEfficiency("histoInvbetaEfficiencyL1T", ";1/#beta;#epsilon_{RECO}", binsINVB, binsINVBEdges);
+  histoPtEfficiencyL1T = new TEfficiency("histoPtEfficiencyL1T",";p_{T} [GeV];#epsilon", binsPT, binsPTEdges);
+  histoPEfficiencyL1T = new TEfficiency("histoPEfficiencyL1T", ";p [GeV];#epsilon", binsP, binsPEdges);
+  histoEtaEfficiencyL1T = new TEfficiency("histoEtaEfficiencyL1T", ";#eta;#epsilon", 100, -2.8, 2.8);
+  histoInvbetaEfficiencyL1T = new TEfficiency("histoInvbetaEfficiencyL1T", ";1/#beta;#epsilon", binsINVB, binsINVBEdges);
 
 
   recoTree = new TTree("recoTree", "recoTree");
@@ -470,6 +470,7 @@ void Projekt::beginJob()
   gmtMuonTree->Branch("P", &(gmtMuonData.p), 32000, 99);
   gmtMuonTree->Branch("ETA", &(gmtMuonData.eta), 32000, 99);
   gmtMuonTree->Branch("INVBETA", &(gmtMuonData.invbeta), 32000, 99);
+  gmtMuonTree->Branch("DELTAR",&(gmtMuonData.deltaR), 32000, 99);
 
   ////////////////////////////  //////////////////////////////
 // PSEUDORAPIDITY HISTOGRAMS SPECIFYING MUON SYSTEM REGIONS //
@@ -483,6 +484,7 @@ void Projekt::endJob()
   cout << "REC MUON: " << recCount << "PASS: " << recPassCount << endl;
   cout << "TEfficiency entries: " << counter << endl;
   cout << "Stau gen in detector: " << COUNTGEN << endl;
+  cout << "Total nr of events: " << theEventCount << endl;
 
   recoTree->Write();
   hscpTree->Write();
@@ -1007,170 +1009,71 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
 
   for (const auto & gp : genParticles) {
     Double_t invbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
-    if(abs(gp.pdgId())>1000000 && gp.status()==1 && abs(gp.eta())<2.1){
+    if(abs(gp.pdgId())>1000000 && gp.status()==1){
       cout << "NEW GEN" << endl;
-      Int_t l1t = 0;
+      int l1tPt = 0;
+      int l1tP = 0;
+      int l1tEta = 0;
+      int l1tInvbeta = 0;
         for (l1t::MuonBxCollection::const_iterator it = gmts.begin(bxNumber); it != gmts.end(bxNumber); ++it) {
 
           const l1t::Muon & l1tMuon = *it;  
-          Double_t deltaR = reco::deltaR(gp,l1tMuon);
-
-          if(l1tMuon.pt()>50 && abs(l1tMuon.eta())<2.1 && abs(l1tMuon.pdgId())==13 && deltaR<0.1){
-              l1t++;
               gmtMuonData.pt = l1tMuon.pt();
               gmtMuonData.p = l1tMuon.p();
               gmtMuonData.eta = l1tMuon.eta();
               Double_t l1tMuonInvbeta = 1/(l1tMuon.p()/sqrt(l1tMuon.p()*l1tMuon.p() + hscpMass*hscpMass));
               gmtMuonData.invbeta = l1tMuonInvbeta;
+              Double_t deltaR = reco::deltaR(gp,l1tMuon);
+              gmtMuonData.deltaR = deltaR;
+              gmtMuonTree->Fill();
+
+          cout << "pt: " << l1tMuon.pt() << ", eta: " << l1tMuon.eta() << ", deltaR: " << deltaR << endl;
+          
+          if(abs(gp.eta())<1.6 && deltaR<0.4){ //22 GeV pT cut corresponds to cut in SingleMu trigger (i.e. most basic L1T trigger)
+/*pT*/      l1tPt++;
+            cout << "pT pass" << endl;
             }
+          if(abs(gp.eta())<1.6 && deltaR<0.4){
+/*p*/       l1tP++;
+            cout << "p pass" << endl;
+          } 
+          if(deltaR<0.4){
+/*eta*/     l1tEta++;
+            cout << "eta pass" << endl;
+          } 
+          if(abs(gp.eta())<1.6 && deltaR<0.4){
+/*invbeta*/ l1tInvbeta++;
+            cout << "invbeta pass" << endl;
+          }
       }
-      if(l1t==1){
+      if(l1tPt>=1){
         histoPtEfficiencyL1T->Fill(1,gp.pt());
+      }
+      else if(l1tPt==0){
+        histoPtEfficiencyL1T->Fill(0,gp.pt());
+      }
+      if(l1tP>=1){
         histoPEfficiencyL1T->Fill(1,gp.p());
+      }
+      else if(l1tP==0){
+        histoPEfficiencyL1T->Fill(0,gp.p());
+      }
+      if(l1tEta>=1){
         histoEtaEfficiencyL1T->Fill(1,gp.eta());
+      }
+      else if(l1tEta==0){
+        histoEtaEfficiencyL1T->Fill(0,gp.eta());
+      }
+      if(l1tInvbeta>=1){
         histoInvbetaEfficiencyL1T->Fill(1,invbeta);
       }
-      else{
-        histoPtEfficiencyL1T->Fill(0,gp.pt());
-        histoPEfficiencyL1T->Fill(0,gp.p());
-        histoEtaEfficiencyL1T->Fill(0,gp.eta());
+      else if(l1tInvbeta==0){
         histoInvbetaEfficiencyL1T->Fill(0,invbeta);
+      }
       }
     }
   } 
 
-
-}
-
-
-/*    bool muon = false;
-    bool matched = false;
-    if ( abs(track.type()) == 13 && pt_sim > 1.0) muon = true;
-    for (unsigned i=0; i<  gmtMuons.size(); i++) {
-        if (   fabs(pt_sim-gmtMuons[i].trkPtr()->momentum().perp()) < 0.5
-            && fabs(phi_sim-gmtMuons[i].trkPtr()->momentum().phi()) < 0.1
-            && fabs(eta_sim-gmtMuons[i].trkPtr()->momentum().eta()) < 0.1) matched = true;
-    }
-    if (debug && (muon || matched) ) {
-     if (debug) {
-      if (muon)    std::cout <<"MUON  "; else std::cout<<"      ";
-      if (matched) std::cout <<"MATCH "; else std::cout<<"      "; */
-     /* std::cout <<" trackId: " <<track.trackId() 
-          <<" type: "<<track.type() // 13 or -13 is a muon
-          << " pt_sim: " << pt_sim <<" eta_sim: "<<eta_sim<<" phi_sim: "<<phi_sim
-          <<" vtx: "<<track.vertIndex();
-      if (track.vertIndex() < static_cast<int>(mySimVerts.size()) ) {
-         double vr = mySimVerts[track.vertIndex()].position().Rho();
-         double vz = mySimVerts[track.vertIndex()].position().z();
-         double z0 = vz-track.momentum().z()/pt_sim*vr;  
-         std::cout <<"vert[r,z]: ["<< vr <<", "<< vz <<"], z0: "<<z0
-                   <<", parent: "<< mySimVerts[track.vertIndex()].parentIndex();
-      }
-      std::cout << std::endl; 
-    }
-  
-  if(simMuonCount!=1) { cout<<"    Simulated muon count != 1"<<endl; return; } */
-
-/* std::cout <<" L1 MUONS: "<<std::endl;
-  edm::Handle<l1t::RegionalMuonCandBxCollection> l1Omtf;
-  ev.getByToken(inputOMTF, l1Omtf);
-  int bxNumber = -1;
-  for (l1t::RegionalMuonCandBxCollection::const_iterator it = l1Omtf.product()->begin(bxNumber);
-       it != l1Omtf.product()->end(bxNumber); ++it) {
-    omtfMuonCount++;
-    pt_omtf  =  (it->hwPt()-1.)/2.;
-    phi_omtf = ( (15.+it->processor()*60.)/360. + it->hwPhi()/576. ) *2*M_PI; 
-    if (phi_omtf > 1*M_PI) phi_omtf -=  2*M_PI;
-    eta_omtf = it->hwEta()/240.*2.26;
-    if (0) std::cout<<" Processor : "<<it->processor()  <<" pT: "<<it->hwPt()<<" eta: "<<it->hwEta()<<" phi: "<<it->hwPhi()<< std::endl;
-    std::cout<<" pT: "<< pt_omtf <<" phi: "<<phi_omtf<<" eta: "<<eta_omtf<<std::endl;
-  }
-  if(omtfMuonCount != 1) cout<<"    OMTF muon count != 1"<<endl;
-  if(omtfMuonCount==1) histo->Fill(phi_omtf);
-*/
- 
-/*
-  edm::Handle<TrackingVertexCollection> tvColl;
-  ev.getByToken(inputTV, tvColl);
-  const TrackingVertexCollection & myTV = *(tvColl.product());
-  std::cout<<" tracking Vertices: " << myTV.size() << std::endl;
-
-  edm::Handle<TrackingVertexCollection> tv0Coll;
-  ev.getByToken(inputTV0, tv0Coll);
-  const TrackingVertexCollection & myTV0 = *(tv0Coll.product());
-  std::cout<<" initial Vertices: " << myTV0.size() << std::endl;
-  for (const auto & tv0 : myTV0 ) {
-      std::cout <<" vertex   : "<< tv0.position()<<" nSimVtx: "<< tv0.nG4Vertices() <<" sTk: "<< tv0.nSourceTracks() <<" dTk: "<<tv0.nDaughterTracks() << std::endl; 
-  }
-*/
-
-/*
-  edm::Handle<TrackingParticleCollection> tpColl;
-  ev.getByToken(inputTP, tpColl);
-  const TrackingParticleCollection & myTP = *(tpColl.product());
-  std::cout<<" TRACKING PARTICLES: " << myTP.size() << std::endl;
-  for (const auto & tp : myTP) {
-    bool gmtTrk = false;
-    //for (const auto & l1m : gmtMuons) {
-     // if (edm::match(tp, l1m)) gmtTrk=true;
-    //}
-    if (gmtTrk && tp.pt()>10.) std::cout <<"**MATCH "<<print(tp)<<std::endl;
-    if ( abs( tp.pdgId())!=13  || tp.pt() < 1. || tp.parentVertex()->position().Rho()>200. ||  fabs(tp.parentVertex()->position().T()) > 24.) continue;
-
-    const TrackingVertexRef&  tpv = tp.parentVertex();
-    const reco::GenParticleRefVector& genParticles = tp.genParticles();
-    std::cout << "Muon : " << tp.pt() <<" tracks: "<< tp.g4Tracks().size()<<" genSize: "<<genParticles.size()<< tpv->position()<<std::endl;
-    std::cout <<" TPV   : "<< tpv->position().T()<<" nSimVtx: "<< tpv->nG4Vertices()<<" nGenVtx: "<< tpv->nGenVertices() 
-                           <<" sTk: "<< tpv->nSourceTracks() <<" dTk: "<<tpv->nDaughterTracks(); 
-    if (tpv->g4Vertices().size()>0) std::cout<<" parentIndex: "<< tpv->g4Vertices()[0].parentIndex();
-    std::cout << std::endl; 
-      
-    for (TrackingVertex::tp_iterator it=tpv->sourceTracks_begin(); it != tpv->sourceTracks_end();++it) {
-      const TrackingParticle & t = **it;
-      std::cout<< "PARENT: "<< t.pdgId()<<" pt: "<<t.pt()<<" vtx: "<<t.parentVertex()->position()<<std::endl;
-      const TrackingVertexRef & tpv = t.parentVertex();
-    std::cout <<" TPV   : "<< tpv->position().T()<<" nSimVtx: "<< tpv->nG4Vertices()<<" nGenVtx: "<< tpv->nGenVertices() 
-                           <<" sTk: "<< tpv->nSourceTracks() <<" dTk: "<<tpv->nDaughterTracks(); 
-    if (tpv->g4Vertices().size()>0) std::cout<<" parentIndex: "<< tpv->g4Vertices()[0].parentIndex();
-    std::cout << std::endl; 
-        if (t.parentVertex()->g4Vertices().size() >0) {
-        const SimVertex & vtx=t.parentVertex()->g4Vertices()[0];
-   double vr = mySimVerts[track.vertIndex()].position().Rho();
-   double vz = mySimVerts[track.vertIndex()].position().z();
-      double z0 = vz-track.momentum().z()/pt_sim*vr;
-   std::cout <<"vert[r,z]: ["<< vr <<", "<< vz <<"], z0: "<<z0
-             <<", parent: "<< mySimVerts[track.vertIndex()].parentIndex();
-        std::cout <<"Parent SimVtx "<< vtx.position()<<" parentTrack: "<<vtx.parentIndex()<<std::endl;
-        } 
-    }
-*/
-      
-/*    if (debug)std::cout <<"   MUON "<<print(tp)<<std::endl; 
-    const TrackingParticle & muAn = ancestor(tp);
-    bool matched = false; 
-    for (const auto & l1m : gmtMuons) {
-      if (match(muAn, l1m)) matched =true;
-    }
-    if (debug) {
-      if (matched) std::cout <<"******* "; else std::cout <<"        ";
-      std::cout <<print(muAn) << std::endl;
-    }
-
-  }
-
-  //std::cout <<"size of GMT muons: "<< gmtMuons.size() << std::endl;
-  //for (const auto & l1m : gmtMuons) {
-    const edm::Ptr< TTTrack<Ref_Phase2TrackerDigi_> >&  pTTTrack = l1m.trkPtr();
-    if (debug) std::cout <<" HERE GMTz0: "<<l1m.hwZ0()<<" GMTpT: "<<l1m.hwPt()<<" trkZ0: "<<pTTTrack->z0()<< std::endl;
-    if (pTTTrack->momentum().perp() > 10.)
-    std::cout <<" ###### momentum: "<< pTTTrack->momentum() <<" pT: "<<pTTTrack->momentum().perp()<<" eta: "<< pTTTrack->momentum().eta()<<" phi: "<< pTTTrack->momentum().phi()<<" pca: "<<pTTTrack->POCA()<< std::endl;
-  }
-  */
-  
-  
-  //write std io
-    //std::cout <<"*** Cwiczenie, analyze event: " << ev.id()<<" useful event count:"<<++theEventCount << std::endl;
-    
 
 DEFINE_FWK_MODULE(Projekt);
 
