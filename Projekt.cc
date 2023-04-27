@@ -895,52 +895,46 @@ void Projekt::analyze(
 
   edm::Handle<edm::ValueMap<reco::MuonTimeExtra>> muonExtraHandle;
   ev.getByToken(inputRecMuonsExtra,muonExtraHandle);
-
   edm::Handle<vector<reco::Muon>> muonHandle;
   ev.getByToken(inputRecMuons, muonHandle);
   const vector<reco::Muon> & recoMuons = *muonHandle.product();
   const unsigned int eventRecMuons = recoMuons.size();
   //cout << eventRecMuons << " muons in event" << endl;
-
   edm::ValueMap<reco::MuonTimeExtra> muonValueMap = *muonExtraHandle;
-  
-
   //cout << "=============RECO SUMMARY=============" << endl;
-
   for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
-  const reco::Muon & recoCandidate = *iter;
-  double phiReco = recoCandidate.phi();
-  			if(phiReco <= 0){
-					phiReco += 2*M_PI;
-				}
-        //test
-  double thetaReco = recoCandidate.theta();
-  double pTReco = recoCandidate.pt();
-  double etaReco = recoCandidate.eta();
-  int  pdgIdReco = recoCandidate.pdgId();
-  double betaReco = recoCandidate.p()/sqrt(recoCandidate.p()*recoCandidate.p()+hscpMass*hscpMass);
+    const reco::Muon & recoCandidate = *iter;
+    double phiReco = recoCandidate.phi();
+    if(phiReco <= 0){
+			phiReco += 2*M_PI;
+	  }
+    double thetaReco = recoCandidate.theta();
+    double pTReco = recoCandidate.pt();
+    double etaReco = recoCandidate.eta();
+    int  pdgIdReco = recoCandidate.pdgId();
+    double betaReco = recoCandidate.p()/sqrt(recoCandidate.p()*recoCandidate.p()+hscpMass*hscpMass);
 
-  //cout << "No. chambers: " << recoCandidate.numberOfChambers() << endl;    
+    //cout << "No. chambers: " << recoCandidate.numberOfChambers() << endl;    
 
-  //cout << "CANDIDATE " << recoMuonCount << " | PDG ID:" << pdgIdReco << " pT: " << pTReco <<  " phi: " << phiReco << " #eta: " << etaReco << "theta: " << thetaReco << endl;
-  //cout << "            Vertex position (x,y,z): " <<  recoCandidate.vertex() << endl;
-  recCount++;
-if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
-  recData.pdgId = pdgIdReco;
-  recData.event = theEventCount;
-  recData.phi = phiReco;
-  recData.theta = thetaReco;
-  recData.pT = pTReco;
-  recData.eta = etaReco;
-  recData.beta = betaReco;
-  recData.invbeta = 1/betaReco;
-  recData.mass = recoCandidate.mass();
-  recData.vx = recoCandidate.vx();
-  recData.vy = recoCandidate.vy();
-  recData.vz = recoCandidate.vz();
-  recoTree->Fill();
-  recPassCount++;
-  }
+    //cout << "CANDIDATE " << recoMuonCount << " | PDG ID:" << pdgIdReco << " pT: " << pTReco <<  " phi: " << phiReco << " #eta: " << etaReco << "theta: " << thetaReco << endl;
+    //cout << "            Vertex position (x,y,z): " <<  recoCandidate.vertex() << endl;
+    recCount++;
+    if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
+      recData.pdgId = pdgIdReco;
+      recData.event = theEventCount;
+      recData.phi = phiReco;
+      recData.theta = thetaReco;
+      recData.pT = pTReco;
+      recData.eta = etaReco;
+      recData.beta = betaReco;
+      recData.invbeta = 1/betaReco;
+      recData.mass = recoCandidate.mass();
+      recData.vx = recoCandidate.vx();
+      recData.vy = recoCandidate.vy();
+      recData.vz = recoCandidate.vz();
+      recoTree->Fill();
+      recPassCount++;
+    }
   }
 
   ////////////////////////////
@@ -948,47 +942,40 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
   ////////////////////////// 
     
   int  countingMatches = 0;
-  for (const auto & gp : genParticles) {
-      long unsigned int gpMatchCount = 0;
-      double genInvbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
-
+  for (const auto & gp : genParticles){
+    long unsigned int gpMatchCount = 0;
+    double genInvbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
     if(gp.pt()>50 && abs(gp.eta())<2.1 && abs(gp.pdgId())>1000000 && gp.status()==1){
-    
       for (const auto & gp2 : genParticles){
         if(gp2.pt()>50 && abs(gp2.eta())<2.1 && abs(gp2.pdgId())>1000000 && gp2.status()==1){
-        if(gpMatchCount==1){
-          continue;
-        }
-        double deltaR = reco::deltaR(gp,gp2);
-        double deltaPhi = abs(gp.phi() - gp2.phi());
-        double deltaEta = abs(gp.eta() - gp2.eta());
-        //cout << "debug2: " << deltaR << endl;
-        
-        if(deltaR>0.1){
+          if(gpMatchCount==1){
+            continue;
+          }
+          double deltaR = reco::deltaR(gp,gp2);
+          double deltaPhi = abs(gp.phi() - gp2.phi());
+          double deltaEta = abs(gp.eta() - gp2.eta());
+          //cout << "debug2: " << deltaR << endl;
+          if(deltaR>0.1){
             //cout << "ETA 1: " << gp.eta() << " PHI: " << gp.phi() << " PT: " << gp.pt() << " DELTA R: " << deltaR << endl;
             //cout << "ETA 2: " << gp2.eta() << " PHI: " << gp2.phi() << " PT: " << gp2.pt() << " DELTA R: " << deltaR << endl;
             //cout << print(gp) << endl;
             //cout << print(gp2) << endl << endl;
-        
             histoGenDeltaR->Fill(deltaR);
             histoGenDeltaPhi->Fill(deltaEta);
             histoGenDeltaEta->Fill(deltaPhi);
             gpMatchCount++;
-            
-            }
           }
+        }
       }
       
       double minDeltaR = 100;
       int  recoMuonCount = 0;
-      for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();
-      iter<recoMuons.end();iter++){
-          reco::MuonRef muref(muonHandle,recoMuonCount);
-          reco::MuonTimeExtra muonExtraData = (muonValueMap)[muref];
+      for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
+        reco::MuonRef muref(muonHandle,recoMuonCount);
+        reco::MuonTimeExtra muonExtraData = (muonValueMap)[muref];
         const reco::Muon & recoCandidate = *iter;
         double pTReco = recoCandidate.pt();
         double etaReco = recoCandidate.eta();
-
         if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate) && abs(recoCandidate.pdgId())==13){
           //cout << "NEW REC CANDIDATE" << endl;
           double deltaR = reco::deltaR(gp,recoCandidate);
@@ -1033,11 +1020,10 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
             countingMatches++;
           }
           invbetaData.genEta = genEta;
-          invbetaTree->Fill();
-                    
-          }
+          invbetaTree->Fill();       
+        }
 
-          recoMuonCount++;
+        recoMuonCount++;
       }
       histoMinDeltaR->Fill(minDeltaR);
       //cout << countingMatches << endl;
@@ -1061,31 +1047,30 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
       int rec = 0;
       int matchedStations = 0;
       //double deltaRValueRec = 0;
-    for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();
-      iter<recoMuons.end();iter++){
-          const reco::Muon & recoCandidate = *iter;  
-          double deltaR = reco::deltaR(gp,recoCandidate);
-          //cout << "DELTA R VALUE: " << deltaR << endl;
-          if(recoCandidate.pt()>50 && abs(recoCandidate.eta())<2.1 && isTightMuon(recoCandidate) && abs(recoCandidate.pdgId())==13 && deltaR<0.1){
-              rec++;
-              //deltaRValueRec = deltaR;
-              matchedStations = recoCandidate.numberOfMatchedStations();
-              //cout << gp.pt() << " is the passing pT value " << endl;
-              //cout << gp.eta() << " is the passing eta value " << endl;
-              histoPtEfficiency->Fill(1,gp.pt());
-              histoPEfficiency->Fill(1,gp.p());
-              histoEtaEfficiency->Fill(1,gp.eta());
-              histoInvbetaEfficiency->Fill(1,invbeta);
-              histoMuonStationsSelected->Fill(invbeta,matchedStations);
-              //cout << "REC PARAMS PASS: PT " << gp.pt() <<", ETA "<< gp.eta() << ", DELTAR " << deltaRValueRec << endl;
-            }
-          else{
-              histoPtEfficiency->Fill(0,gp.pt());
-              histoPEfficiency->Fill(0,gp.p());
-              histoEtaEfficiency->Fill(0,gp.eta());
-              histoInvbetaEfficiency->Fill(0,invbeta);
-              histoMuonStationsSelected->Fill(invbeta,0);
-      }
+      for(vector<reco::Muon>::const_iterator iter = recoMuons.begin(); iter<recoMuons.end();iter++){
+        const reco::Muon & recoCandidate = *iter;  
+        double deltaR = reco::deltaR(gp,recoCandidate);
+        //cout << "DELTA R VALUE: " << deltaR << endl;
+        if(recoCandidate.pt()>50 && abs(recoCandidate.eta())<2.1 && isTightMuon(recoCandidate) && abs(recoCandidate.pdgId())==13 && deltaR<0.1){
+          rec++;
+          //deltaRValueRec = deltaR;
+          matchedStations = recoCandidate.numberOfMatchedStations();
+          //cout << gp.pt() << " is the passing pT value " << endl;
+          //cout << gp.eta() << " is the passing eta value " << endl;
+          histoPtEfficiency->Fill(1,gp.pt());
+          histoPEfficiency->Fill(1,gp.p());
+          histoEtaEfficiency->Fill(1,gp.eta());
+          histoInvbetaEfficiency->Fill(1,invbeta);
+          histoMuonStationsSelected->Fill(invbeta,matchedStations);
+          //cout << "REC PARAMS PASS: PT " << gp.pt() <<", ETA "<< gp.eta() << ", DELTAR " << deltaRValueRec << endl;
+        }
+        else{
+          histoPtEfficiency->Fill(0,gp.pt());
+          histoPEfficiency->Fill(0,gp.p());
+          histoEtaEfficiency->Fill(0,gp.eta());
+          histoInvbetaEfficiency->Fill(0,invbeta);
+          histoMuonStationsSelected->Fill(invbeta,0);
+        }
       }
     }
   }
@@ -1101,12 +1086,12 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
   ev.getByToken(theGmtToken, l1tMuonHandle);
   const BXVector<l1t::Muon> & l1tMuons = *l1tMuonHandle.product();
   const unsigned int eventL1tMuons = l1tMuons.size();
-  for (const auto & gp : genParticles) {
+  for (const auto & gp : genParticles){
     double invbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
     double gpPhi = gp.phi();
     if (gpPhi <= 0){
 				gpPhi += 2*M_PI;
-			}
+		}
     int l1tPPtInvbeta = 0;
     int l1tEta = 0;
     int l1tPPtInvbeta_eta14 = 0;
@@ -1117,60 +1102,46 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
    // double deltaRValue = 0;
     if(abs(gp.pdgId())>1000000 && gp.status()==1){
       //cout << "NEW GEN PARTICLE" << endl;
-        EfficiencyInvbetaEtaAll->Fill(gp.eta(),invbeta);
-        if(abs(gp.eta()) < 0.83){
-          EfficiencyInvbetaPhiAllBarrel->Fill(gpPhi,invbeta);
+      for (l1t::MuonBxCollection::const_iterator it = gmts.begin(bxNumber); it != gmts.end(bxNumber); ++it){
+        const l1t::Muon & l1tMuon = *it;  
+        double l1tMuonInvbeta = 1/(l1tMuon.p()/sqrt(l1tMuon.p()*l1tMuon.p() + 0.105*0.105));
+        double deltaR = reco::deltaR(gp,l1tMuon);
+        if(deltaR<0.4){ //22 GeV pT cut corresponds to cut in SingleMu trigger (i.e. most basic L1T trigger)
+/*pT*/    l1tEta++;
+          gmtMuonData.pt = l1tMuon.pt();
+          gmtMuonData.ptGen = gp.pt();
+          gmtMuonData.p = l1tMuon.p();
+          gmtMuonData.pGen = gp.p();
+          gmtMuonData.eta = l1tMuon.eta();
+          gmtMuonData.etaGen = gp.eta();
+          //cout << "MASS CHECK: " << hscpMass << endl;
+          gmtMuonData.invbeta = l1tMuonInvbeta;
+          gmtMuonData.invbetaGen = invbeta;
+          gmtMuonData.deltaR = deltaR;
+          gmtMuonTree->Fill();
+          //cout << "ETA COUNTER STATUS: " << l1tEta << endl;
+          //cout << "PAIR FOUND" << endl;
+/*p*/     l1tPPtInvbeta++;
+          //cout << "L1T counter status" << l1tPPtInvbeta << endl;
+          //cout << " PASS: DELTA = " << deltaR << ", ETA L1T = " << etaMuon << ", ETA GP: " <<gp.eta() << endl;
+          // deltaRValue = deltaR;  
         }
-        if(abs(gp.eta())>1.24){
-          EfficiencyInvbetaPhiAllEndcap->Fill(gpPhi,invbeta);
-        }
-        if(abs(gp.eta())>0.83 && abs(gp.eta()<1.24)){
-          EfficiencyInvbetaPhiAllOverlap->Fill(gpPhi,invbeta);
-        }
-        for (l1t::MuonBxCollection::const_iterator it = gmts.begin(bxNumber); it != gmts.end(bxNumber); ++it) {
-          const l1t::Muon & l1tMuon = *it;  
-          double l1tMuonInvbeta = 1/(l1tMuon.p()/sqrt(l1tMuon.p()*l1tMuon.p() + 0.105*0.105));
-          double deltaR = reco::deltaR(gp,l1tMuon);
-          if(deltaR<0.4){ //22 GeV pT cut corresponds to cut in SingleMu trigger (i.e. most basic L1T trigger)
-/*pT*/      l1tEta++;
-            gmtMuonData.pt = l1tMuon.pt();
-            gmtMuonData.ptGen = gp.pt();
-            gmtMuonData.p = l1tMuon.p();
-            gmtMuonData.pGen = gp.p();
-            gmtMuonData.eta = l1tMuon.eta();
-            gmtMuonData.etaGen = gp.eta();
-            //cout << "MASS CHECK: " << hscpMass << endl;
-            gmtMuonData.invbeta = l1tMuonInvbeta;
-            gmtMuonData.invbetaGen = invbeta;
-            gmtMuonData.deltaR = deltaR;
-            gmtMuonTree->Fill();
-            //cout << "ETA COUNTER STATUS: " << l1tEta << endl;
-            if(abs(gp.eta())<1.4){
-              l1tPPtInvbeta_eta14++;
-            }
-          if(abs(gp.eta())<1.6){
-            //cout << "PAIR FOUND" << endl;
-/*p*/       l1tPPtInvbeta++;
-            //cout << "L1T counter status" << l1tPPtInvbeta << endl;
-            etaMuon = l1tMuon.eta();
-            pMuon = l1tMuon.p();
-            pTMuon = l1tMuon.pt();
-            invbetaMuon = l1tMuonInvbeta;
-            //cout << " PASS: DELTA = " << deltaR << ", ETA L1T = " << etaMuon << ", ETA GP: " <<gp.eta() << endl;
-           // deltaRValue = deltaR;
-
-          }
       }
-    }
           //cout << l1tPPtInvbeta << endl;
+      EfficiencyInvbetaEtaAll->Fill(gp.eta(),invbeta);
+      if(abs(gp.eta()) < 0.83){
+        EfficiencyInvbetaPhiAllBarrel->Fill(gpPhi,invbeta);
+      }
+      if(abs(gp.eta())>1.24){
+        EfficiencyInvbetaPhiAllEndcap->Fill(gpPhi,invbeta);
+      }
+      if(abs(gp.eta())>0.83 && abs(gp.eta()<1.24)){
+        EfficiencyInvbetaPhiAllOverlap->Fill(gpPhi,invbeta);
+      }
       if(l1tPPtInvbeta==1){
         histoPtEfficiencyL1T->Fill(1,gp.pt());
         histoPEfficiencyL1T->Fill(1,gp.p());
         histoInvbetaEfficiencyL1T->Fill(1,invbeta);
-        histoEtaCheck->Fill(gp.eta(),etaMuon);
-        histoPtCheck->Fill(gp.pt(),pTMuon);
-        histoPCheck->Fill(gp.p(),pMuon);
-        histoInvbetaCheck->Fill(invbeta,invbetaMuon);
         EfficiencyInvbetaEtaSelected->Fill(gp.eta(),invbeta);
         if(abs(gp.eta()) < 0.83){
           EfficiencyInvbetaPhiSelectedBarrel->Fill(gpPhi,invbeta);
@@ -1203,11 +1174,11 @@ if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
         histoInvbetaEfficiencyL1T_eta14->Fill(1,invbeta);
       }
       else if(l1tPPtInvbeta_eta14==0){
-        histoPtEfficiencyL1T_eta14->Fill(1,gp.pt());
-        histoPEfficiencyL1T_eta14->Fill(1,gp.p());
-        histoInvbetaEfficiencyL1T_eta14->Fill(1,invbeta);
+        histoPtEfficiencyL1T_eta14->Fill(0,gp.pt());
+        histoPEfficiencyL1T_eta14->Fill(0,gp.p());
+        histoInvbetaEfficiencyL1T_eta14->Fill(0,invbeta);
       }
-  }
+    }
   } 
 }
 
