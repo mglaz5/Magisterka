@@ -75,212 +75,234 @@
 using namespace std;
 
 typedef struct{
-  int  event;
-  int  track;
-  int  pid;
-  int  superlayer;
-  int  station;
-  int  wheel;
-  int  sector;
-  int  layer;
-  double localX;
-  double localY;
-  double localZ;
-  double globalX;
-  double globalY;
-  double globalZ;
-  double pt;
-  double phi;
-  double r;
-  double eta;
-  double tof;
-  double beta;
-  double distanceVTX;
-  double distanceIP;
-  double nextLocalX;
-  double nextLocalY;
-  double nextLocalZ;
-  double nextGlobalX;
-  double nextGlobalY;
-  double nextGlobalZ;
-  double globalHitDistDiff;
-  double betaNextHit;
-  double diffTOFGeant;
-  double diffTOFHitB;
-  double diffTOFNextB;
-  bool samewheel;
-  bool samesl;
-  bool samesect;
-  bool samest;
+    int  event;
+    int  track;
+    int  pid;
+    int  superlayer;
+    int  station;
+    int  wheel;
+    int  sector;
+    int  layer;
+    double localX;
+    double localY;
+    double localZ;
+    double globalX;
+    double globalY;
+    double globalZ;
+    double pt;
+    double phi;
+    double r;
+    double eta;
+    double tof;
+    double beta;
+    double distanceVTX;
+    double distanceIP;
+    double nextLocalX;
+    double nextLocalY;
+    double nextLocalZ;
+    double nextGlobalX;
+    double nextGlobalY;
+    double nextGlobalZ;
+    double globalHitDistDiff;
+    double betaNextHit;
+    double diffTOFGeant;
+    double diffTOFHitB;
+    double diffTOFNextB;
+    bool samewheel;
+    bool samesl;
+    bool samesect;
+    bool samest;
   } SimHitData;
 
 typedef struct{
-  int  pdgId;
-  int  event;
-  double phi;
-  double theta;
-  double eta;
-  double pT;
-  double mass;
-  double vx;
-  double vy;
-  double vz;
-  double beta;
-  double invbeta;
+    int  pdgId;
+    int  event;
+    double phi;
+    double theta;
+    double eta;
+    double pT;
+    double mass;
+    double vx;
+    double vy;
+    double vz;
+    double beta;
+    double invbeta;
 }RecCandidateData;  
 
 typedef struct{
-  int  pdgId;
-  int  event;
-  double phi;
-  double theta;
-  double eta;
-  double pT;
-  double mass;
-  double beta;
-  double invbeta;
+    int  pdgId;
+    int  event;
+    double phi;
+    double theta;
+    double eta;
+    double pT;
+    double mass;
+    double beta;
+    double invbeta;
 }GenCandidateData; 
 
 typedef struct{
-  double pgen;
-  double preco;
-  double invbetagen;
-  double invbetamanual;
-  double invbetareco;
-  double invbetarecoerror;
-  double event;
-  double deltaR;
-  double genPt;
-  double innerrecoPt;
-  double outerrecoPt;
-  double recoPt;
-  double genEta;
-  double recoEta;
-  int  stationMatches;
+    double pgen;
+    double preco;
+    double invbetagen;
+    double invbetamanual;
+    double invbetareco;
+    double invbetarecoerror;
+    double event;
+    double deltaR;
+    double genPt;
+    double innerrecoPt;
+    double outerrecoPt;
+    double recoPt;
+    double genEta;
+    double recoEta;
+    double recoPhi;
+    double genPhi;
+    int  stationMatches;
 }InverseBetaData;
 
 typedef struct{
-  double pt;
-  double eta;
-  double p;
-  double invbeta;
+    double pt;
+    double eta;
+    double p;
+    double invbeta;
 }TotalMCData;
 
 typedef struct{
-  double pt;
-  double ptGen;
-  double eta;
-  double etaGen;
-  double p;
-  double pGen;
-  double invbeta;
-  double invbetaGen;
-  double deltaR;
+    double pt;
+    double ptGen;
+    double eta;
+    double etaGen;
+    double p;
+    double pGen;
+    double invbeta;
+    double invbetaGen;
+    double deltaR;
 }GMTMuonData;
 
 //object definition
 class Projekt : public edm::EDAnalyzer {
-public:
+    public:
 
-  //constructor, function is called when new object is created
-  explicit Projekt(const edm::ParameterSet& conf);
+        //constructor, function is called when new object is created
+        explicit Projekt(const edm::ParameterSet& conf);
 
-  //destructor, function is called when object is destroyed
-  ~Projekt();
+        //destructor, function is called when object is destroyed
+        ~Projekt();
 
-  //edm filter plugin specific functions
-  virtual void beginJob();
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
-  virtual void endJob();
+        //edm filter plugin specific functions
+        virtual void beginJob();
+        virtual void analyze(const edm::Event&, const edm::EventSetup&);
+        virtual void endJob();
 
-private:
+    private:
 
-  edm::ParameterSet theConfig;
-  unsigned int theEventCount;
-  unsigned int hscpCount;
-  unsigned int nlines;
-  double hscpMass;
-  unsigned int genMCCount;
-  unsigned int genMCPassCount;
-  unsigned int recCount;
-  unsigned int recPassCount;
-  unsigned int counter;
-  unsigned int COUNTGEN;
-  //added variables
-  TFile *myRootFile;
-  TH1F *histoGenDeltaR;
-  TH1F *histoGenDeltaPhi;
-  TH1F *histoGenDeltaEta;
-  TH1F *histoDeltaR;
-  TH1F *histoMinDeltaR;
+        edm::ParameterSet theConfig;
+        unsigned int theEventCount;
+        unsigned int hscpCount;
+        unsigned int nlines;
+        double hscpMass;
+        unsigned int genMCCount;
+        unsigned int genMCPassCount;
+        unsigned int recCount;
+        unsigned int recPassCount;
+        unsigned int counter;
+        unsigned int COUNTGEN;
 
-  TH2F *histoMuonStationsTotal;
-  TH2F *histoMuonStationsSelected;
-  TH2F *histoEtaCheck;
-  TH2F *histoPtCheck;
-  TH2F *histoPCheck;
-  TH2F *histoInvbetaCheck;
+        TFile *myRootFile;
+        TH1F *histoGenDeltaR;
+        TH1F *histoGenDeltaPhi;
+        TH1F *histoGenDeltaEta;
+        TH1F *histoDeltaR;
+        TH1F *histoMinDeltaR;
 
-  TH2F *EfficiencyInvbetaEtaAll;
-  TH2F *EfficiencyInvbetaEtaSelected;
+        TH2F *histoMuonStationsTotal;
+        TH2F *histoMuonStationsSelected;
+        TH2F *histoEtaCheck;
+        TH2F *histoPtCheck;
+        TH2F *histoPCheck;
+        TH2F *histoInvbetaCheck;
 
+        TH2F *EfficiencyRecoInvbetaEtaAll;
+        TH2F *EfficiencyRecoInvbetaEtaSelected;
 
-  TH2F *EfficiencyInvbetaPhiAllBarrel;
-  TH2F *EfficiencyInvbetaPhiSelectedBarrel;
+        TH2F *EfficiencyRecoInvbetaPhiAllBarrel;
+        TH2F *EfficiencyRecoInvbetaPhiSelectedBarrel;
 
-  TH2F *EfficiencyInvbetaPhiAllEndcap;
-  TH2F *EfficiencyInvbetaPhiSelectedEndcap;
+        TH2F *EfficiencyRecoInvbetaPhiAllEndcap;
+        TH2F *EfficiencyRecoInvbetaPhiSelectedEndcap;
 
-  TH2F *EfficiencyInvbetaPhiAllOverlap;
-  TH2F *EfficiencyInvbetaPhiSelectedOverlap;
+        TH2F *EfficiencyRecoInvbetaPhiAllOverlap;
+        TH2F *EfficiencyRecoInvbetaPhiSelectedOverlap;
 
-  TEfficiency *histoPtEfficiency;
-  TEfficiency *histoPEfficiency;
-  TEfficiency *histoEtaEfficiency;
-  TEfficiency *histoInvbetaEfficiency;
-  TEfficiency *histoPtEfficiencyL1T;
-  TEfficiency *histoPEfficiencyL1T;
-  TEfficiency *histoEtaEfficiencyL1T;
-  TEfficiency *histoInvbetaEfficiencyL1T;
+        TH2F *EfficiencyInvbetaEtaAll;
+        TH2F *EfficiencyInvbetaEtaSelected;
 
-  TEfficiency *histoPtEfficiencyL1T_eta14;
-  TEfficiency *histoPEfficiencyL1T_eta14;
-  TEfficiency *histoEtaEfficiencyL1T_eta14;
-  TEfficiency *histoInvbetaEfficiencyL1T_eta14;
+        TH2F *EfficiencyInvbetaPhiAllBarrel;
+        TH2F *EfficiencyInvbetaPhiSelectedBarrel;
 
-  TTree *hscpTree;
-  TTree *recoTree;
-  TTree *generatedTree;
-  TTree *invbetaTree;
-  TTree *totalMCTree;
-  TTree *gmtMuonTree;
+        TH2F *EfficiencyInvbetaPhiAllEndcap;
+        TH2F *EfficiencyInvbetaPhiSelectedEndcap;
 
-  SimHitData hitData;
-  RecCandidateData recData;
-  GenCandidateData generatedData;
-  InverseBetaData invbetaData;
-  TotalMCData totalMCData;
-  GMTMuonData gmtMuonData;
+        TH2F *EfficiencyInvbetaPhiAllOverlap;
+        TH2F *EfficiencyInvbetaPhiSelectedOverlap;
+
+        TEfficiency *histoPtEfficiency;
+        TEfficiency *histoPEfficiency;
+        TEfficiency *histoEtaEfficiency;
+        TEfficiency *histoInvbetaEfficiency;
+        TEfficiency *histoPtEfficiencyL1T;
+        TEfficiency *histoPEfficiencyL1T;
+        TEfficiency *histoEtaEfficiencyL1T;
+        TEfficiency *histoInvbetaEfficiencyL1T;
+
+        TEfficiency *histoPtEfficiencyL1T_BMTF;
+        TEfficiency *histoInvbetaEfficiencyL1T_BMTF;
+        TEfficiency *histoPEfficiencyL1T_BMTF;
+        
+        TEfficiency *histoPtEfficiencyL1T_OMTF;
+        TEfficiency *histoInvbetaEfficiencyL1T_OMTF;
+        TEfficiency *histoPEfficiencyL1T_OMTF;
+        
+        TEfficiency *histoPtEfficiencyL1T_EMTF;
+        TEfficiency *histoInvbetaEfficiencyL1T_EMTF;
+        TEfficiency *histoEtaEfficiencyL1T_EMTF_A;
+        TEfficiency *histoEtaEfficiencyL1T_EMTF_B;
+        TEfficiency *histoPEfficiencyL1T_EMTF;
+
+        TTree *hscpTree;
+        TTree *recoTree;
+        TTree *generatedTree;
+        TTree *invbetaTree;
+        TTree *totalMCTree;
+        TTree *gmtMuonTree;
+
+        SimHitData hitData;
+        RecCandidateData recData;
+        GenCandidateData generatedData;
+        InverseBetaData invbetaData;
+        TotalMCData totalMCData;
+        GMTMuonData gmtMuonData;
 
   ////////////////////////////////
 // Definitions of various inputs // 
   //////////////////////////////
-  edm::EDGetTokenT<edm::SimTrackContainer> inputSim;
-  edm::EDGetTokenT<edm::SimVertexContainer> inputVtx;
-  edm::EDGetTokenT<TrackingParticleCollection> inputTP;
-  edm::EDGetTokenT<TrackingVertexCollection> inputTV, inputTV0;
-  edm::EDGetTokenT<vector<reco::GenParticle> > inputGP;
+        edm::EDGetTokenT<edm::SimTrackContainer> inputSim;
+        edm::EDGetTokenT<edm::SimVertexContainer> inputVtx;
+        edm::EDGetTokenT<TrackingParticleCollection> inputTP;
+        edm::EDGetTokenT<TrackingVertexCollection> inputTV, inputTV0;
+        edm::EDGetTokenT<vector<reco::GenParticle> > inputGP;
 
 //My simHits contribution to the code:
-  //edm::EDGetTokenT<vector<PSimHit>> inputHitsDT;
-  edm::EDGetTokenT<vector<reco::Muon>> inputRecMuons;
-  edm::EDGetTokenT<edm::ValueMap<reco::MuonTimeExtra>> inputRecMuonsExtra;
-  const edm::ESGetToken<GlobalTrackingGeometry, GlobalTrackingGeometryRecord> theGeometryToken;
-  const edm::ESGetToken<DTGeometry, MuonGeometryRecord> theDTGeomToken;
-  const edm::ESGetToken<CSCGeometry, MuonGeometryRecord> theCSCGeomToken;
-  const edm::ESGetToken<RPCGeometry, MuonGeometryRecord> theRPCGeomToken;
+       //edm::EDGetTokenT<vector<PSimHit>> inputHitsDT;
+        edm::EDGetTokenT<vector<reco::Muon>> inputRecMuons;
+        edm::EDGetTokenT<edm::ValueMap<reco::MuonTimeExtra>> inputRecMuonsExtra;
+        const edm::ESGetToken<GlobalTrackingGeometry, GlobalTrackingGeometryRecord> theGeometryToken;
+        const edm::ESGetToken<DTGeometry, MuonGeometryRecord> theDTGeomToken;
+        const edm::ESGetToken<CSCGeometry, MuonGeometryRecord> theCSCGeomToken;
+        const edm::ESGetToken<RPCGeometry, MuonGeometryRecord> theRPCGeomToken;
 
-  edm::EDGetTokenT<BXVector<l1t::Muon>> theGmtToken;  
+        edm::EDGetTokenT<BXVector<l1t::Muon>> theGmtToken;  
 
 };
 
@@ -294,58 +316,61 @@ bool match(const TrackingParticle & tp, const l1t::TrackerMuon & gmt) {
 }*/
 
 string print(const TrackingParticle & tp) {
-  stringstream ss;
-  ss << tp.pdgId()
-     <<" pt: "<<tp.pt()
-     <<" eta: "<<tp.eta()
-     <<" phi: "<<tp.phi()
-     <<" vtx[r,z]:  ["<<tp.parentVertex()->position().Rho() <<", "<<tp.parentVertex()->position().z()<<"]"
-     <<" time: "<<tp.parentVertex()->position().T() 
-     ; 
-  return ss.str();
+    stringstream ss;
+    ss << tp.pdgId()
+      <<" pt: "<<tp.pt()
+      <<" eta: "<<tp.eta()
+      <<" phi: "<<tp.phi()
+      <<" vtx[r,z]:  ["<<tp.parentVertex()->position().Rho() <<", "<<tp.parentVertex()->position().z()<<"]"
+      <<" time: "<<tp.parentVertex()->position().T(); 
+    return ss.str();
 }
 
 string print(const reco::GenParticle & gp) {
-  stringstream ss;
-  ss << gp.pdgId()
-     <<" pt: "<<gp.pt()
-     <<" eta: "<<gp.eta()
-     <<" phi: "<<gp.phi()
-     <<" eta test: " << gp.momentum().eta();
-     ; 
-  return ss.str();
+    stringstream ss;
+    ss << gp.pdgId()
+       <<" pt: "<<gp.pt()
+       <<" eta: "<<gp.eta()
+       <<" phi: "<<gp.phi()
+       <<" eta test: " << gp.momentum().eta(); 
+    return ss.str();
+}
+
+double Invbeta(double momentum, double mass){
+    double invbeta = sqrt(mass*mass+momentum*momentum)/momentum;
+    return invbeta;
 }
 
 bool isTightMuon(const reco::Muon& muon){
-   if(!muon.isPFMuon() || !muon.isGlobalMuon() ) return false;
-   bool muID = muon::isGoodMuon(muon,muon::GlobalMuonPromptTight) &&
+    if(!muon.isPFMuon() || !muon.isGlobalMuon() ) return false;
+    bool muID = muon::isGoodMuon(muon,muon::GlobalMuonPromptTight) &&
                                   (muon.numberOfMatchedStations() > 1);
-   bool hits = muon.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 &&
+    bool hits = muon.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 &&
                         muon.innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
-   bool ip = true;
-   return muID && hits && ip;
+    bool ip = true;
+    return muID && hits && ip;
 }
 
 const TrackingParticle & ancestor(const TrackingParticle & particle) {
 
-  const TrackingVertexRef&  tpv = particle.parentVertex(); 
-  if (tpv->nSourceTracks() == 0) return particle;
-  const TrackingParticle & parent =  **(tpv->sourceTracks_begin());
-  return ancestor(parent);
+    const TrackingVertexRef&  tpv = particle.parentVertex(); 
+    if (tpv->nSourceTracks() == 0) return particle;
+    const TrackingParticle & parent =  **(tpv->sourceTracks_begin());
+    return ancestor(parent);
 }
 
 Projekt::Projekt(const edm::ParameterSet& conf) 
-  : theConfig(conf), theEventCount(0), hscpCount(0), nlines(0), hscpMass(0), genMCCount(0), genMCPassCount(0), recCount(0), recPassCount(0), counter(0), COUNTGEN(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes()), theCSCGeomToken(esConsumes()), theRPCGeomToken(esConsumes())
+  : theConfig(conf), theEventCount(0), hscpCount(0), nlines(0), genMCCount(0), genMCPassCount(0), recCount(0), recPassCount(0), counter(0), COUNTGEN(0), theGeometryToken(esConsumes()), theDTGeomToken(esConsumes()), theCSCGeomToken(esConsumes()), theRPCGeomToken(esConsumes())
 {
-  cout <<" CTORXX" << endl;
+    cout <<" CTORXX" << endl;
 //  inputOMTF = consumes<l1t::RegionalMuonCandBxCollection>(theConfig.getParameter<edm::InputTag>("inputOMTF") );
  // inputSim =  consumes<edm::SimTrackContainer>(edm::InputTag("g4SimHits"));
  // inputVtx =  consumes<edm::SimVertexContainer>(edm::InputTag("g4SimHits"));
 //  inputGMT =  consumes< vector<l1t::TrackerMuon> >(edm::InputTag("gmtMuons"));
-  inputTP  =   consumes<TrackingParticleCollection>(edm::InputTag("mix","MergedTrackTruth"));
-  inputTV  =   consumes<TrackingVertexCollection>(edm::InputTag("mix","MergedTrackTruth"));
-  inputTV0 =   consumes<TrackingVertexCollection>(edm::InputTag("mix","InitialVertices"));
-  inputGP  =  consumes< vector<reco::GenParticle> >(edm::InputTag("genParticles"));
+    inputTP  =   consumes<TrackingParticleCollection>(edm::InputTag("mix","MergedTrackTruth"));
+    inputTV  =   consumes<TrackingVertexCollection>(edm::InputTag("mix","MergedTrackTruth"));
+    inputTV0 =   consumes<TrackingVertexCollection>(edm::InputTag("mix","InitialVertices"));
+    inputGP  =  consumes< vector<reco::GenParticle> >(edm::InputTag("genParticles"));
 
   //nputHitsDT = consumes<vector<PSimHit>>(edm::InputTag("g4SimHits","MuonDTHits"));
   inputRecMuons = consumes<vector<reco::Muon>>(edm::InputTag("muons",""));
@@ -365,19 +390,12 @@ Projekt::~Projekt()
 void Projekt::beginJob()
 {
 
-  /////////////////////////////////////////////////////////
-// FILES FOR PSEUDORAPIDITY ANALYSIS - files use simTracks //
-  /////////////////////////////////////////////////////////
-
-//FEVTSIM_stau_M200_full.root - FEVTSIM.root analysis
-//stau_M432_analysis.root - stau_432.root analysis (GEN AND RECO ONLY)
-
   myRootFile = new TFile("stau_M432_analysis.root","RECREATE"); //remember to change name when changing datafiles!
-  histoDeltaR = new TH1F("histoDeltaR","histoDeltaR",300,0,6);
-  histoMinDeltaR = new TH1F("histoMinDeltaR","histoMinDeltaR",300,0,6);
+  histoDeltaR = new TH1F("histoDeltaR",";#DeltaR^{GEN/GEN};#Entries",300,0,6);
+  histoMinDeltaR = new TH1F("histoMinDeltaR",";#DeltaR;#Events",300,0,6);
   histoGenDeltaR = new TH1F("histoGenDeltaR","histoGenDeltaR",300,0,6);
-  histoGenDeltaPhi = new TH1F("histoGenDeltaPhi","histoGenDeltaPhi",100,0,7);
-  histoGenDeltaEta = new TH1F("histoGenDeltaEta","histoGenDeltaEta",200,0,6);
+  histoGenDeltaPhi = new TH1F("histoGenDeltaPhi","histoGenDeltaPhi;#left|#Delta#phi^{GEN/GEN}#right| [rad];#Entries",100,0,3.5);
+  histoGenDeltaEta = new TH1F("histoGenDeltaEta","histoGenDeltaEta;#left|#Delta#eta^{GEN/GEN}#right|;#Entries",100,0,6);
 
   histoMuonStationsTotal = new TH2F("histoMuonStationsTotal","histoMuonStationsTotal", 30, 0, 6, 6 , 0 , 6);
   histoMuonStationsSelected = new TH2F("histoMuonStationsSelected","histoMuonStationsSelected", 30, 0, 6 , 6, 0 , 6);
@@ -389,41 +407,66 @@ void Projekt::beginJob()
 
 //Gen refers to total gen candidates, reco refers to gen candidates matched with reco candidates
 
-  const int  binsPT = 24;
-  double binsPTEdges[binsPT+1] = {0.,20.,40.,60.,80.,100.,150.,200.,250.,300.,350.,400.,450.,500.,600.,700.,800.,900.,1000.,1200.,1400.,1600.,1800.,2000.,3000.};
+  const int  binsPT = 32;
+  double binsPTEdges[binsPT+1] = {0.,10.,20.,30.,40.,50.,60.,70.,80.,90.,100.,120.,140.,160.,180.,200.,250.,300.,350.,400.,450.,500.,600.,700.,800.,900.,1000.,1200.,1400.,1600.,1800.,2000.,3000.};
 
   const int  binsP = 26;
   double binsPEdges[binsP+1] = {0.,20.,40.,60.,80.,100.,150.,200.,250.,300.,350.,400.,450.,500.,600.,700.,800.,900.,1000.,1200.,1400.,1600.,1800.,2000.,3000.,4000.,5000.};
 
   const int  binsINVB = 19;
   double binsINVBEdges[binsINVB+1] = {1.,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.2,2.4,2.6,2.8,3.0,3.5,4.0,5.0,6.0};
-  histoPtEfficiency = new TEfficiency("histoPtEfficiency",";p_{T} [GeV];#epsilon",binsPT,binsPTEdges);
-  histoPEfficiency = new TEfficiency("histoPEfficiency", ";p [GeV];#epsilon", binsP, binsPEdges);
-  histoEtaEfficiency = new TEfficiency("histoEtaEfficiency", ";#eta;#epsilon", 100, -2.8, 2.8);
-  histoInvbetaEfficiency = new TEfficiency("histoInvbetaEfficiency", ";1/#beta;#epsilon", binsINVB, binsINVBEdges);
+  histoPtEfficiency = new TEfficiency("histoPtEfficiency",";p_{T}^{GEN} [GeV];Efficiency",binsPT,binsPTEdges);
+  histoPEfficiency = new TEfficiency("histoPEfficiency", ";p^{GEN} [GeV];Efficiency", binsP, binsPEdges);
+  histoEtaEfficiency = new TEfficiency("histoEtaEfficiency", ";#eta^{GEN};Efficiency", 100, -2.8, 2.8);
+  histoInvbetaEfficiency = new TEfficiency("histoInvbetaEfficiency", ";1/#beta^{GEN};Efficiency", binsINVB, binsINVBEdges);
 
-  histoPtEfficiencyL1T = new TEfficiency("histoPtEfficiencyL1T",";p_{T} [GeV];#epsilon", binsPT, binsPTEdges);
-  histoPEfficiencyL1T = new TEfficiency("histoPEfficiencyL1T", ";p [GeV];#epsilon", binsP, binsPEdges);
-  histoEtaEfficiencyL1T = new TEfficiency("histoEtaEfficiencyL1T", ";#eta;#epsilon", 100, -2.8, 2.8);
-  histoInvbetaEfficiencyL1T = new TEfficiency("histoInvbetaEfficiencyL1T", ";1/#beta;#epsilon", binsINVB, binsINVBEdges);
+  histoPtEfficiencyL1T = new TEfficiency("histoPtEfficiencyL1T",";p_{T}^{GEN} [GeV];Efficiency", binsPT, binsPTEdges);
+  histoPEfficiencyL1T = new TEfficiency("histoPEfficiencyL1T", ";p^{GEN} [GeV];Efficiency", binsP, binsPEdges);
+  histoEtaEfficiencyL1T = new TEfficiency("histoEtaEfficiencyL1T", ";#eta^{GEN};Efficiency", 100, -2.8, 2.8);
+  histoInvbetaEfficiencyL1T = new TEfficiency("histoInvbetaEfficiencyL1T", ";1/#beta^{GEN};Efficiency", binsINVB, binsINVBEdges);
 
-  histoPtEfficiencyL1T_eta14 = new TEfficiency("histoPtEfficiencyL1T_eta14",";p_{T} [GeV];#epsilon", binsPT, binsPTEdges);
-  histoPEfficiencyL1T_eta14 = new TEfficiency("histoPEfficiencyL1T_eta14", ";p [GeV];#epsilon", binsP, binsPEdges);
-  histoEtaEfficiencyL1T_eta14 = new TEfficiency("histoEtaEfficiencyL1T_eta14", ";#eta;#epsilon", 100, -2.8, 2.8);
-  histoInvbetaEfficiencyL1T_eta14 = new TEfficiency("histoInvbetaEfficiencyL1T_eta14", ";1/#beta;#epsilon", binsINVB, binsINVBEdges);
+  histoPtEfficiencyL1T_BMTF = new TEfficiency("histoPtEfficiencyL1T_BMTF",";p_{T}^{GEN} [GeV];Efficiency", binsPT, binsPTEdges);
+  histoInvbetaEfficiencyL1T_BMTF = new TEfficiency("histoInvbetaEfficiencyL1T_BMTF", ";1/#beta^{GEN};Efficiency", binsINVB, binsINVBEdges);
+  histoPEfficiencyL1T_BMTF = new TEfficiency("histoPEfficiencyL1T_BMTF", ";p^{GEN} [GeV];Efficiency", binsP, binsPEdges);
 
-  EfficiencyInvbetaEtaAll = new TH2F("EfficiencyInvbetaEtaAll","EfficiencyInvbetaEtaAll",100,-2.8,2.8,binsINVB, binsINVBEdges);
-  EfficiencyInvbetaEtaSelected = new TH2F("EfficiencyInvbetaEtaSelected","EfficiencyInvbetaEtaSelected",100,-2.8,2.8,binsINVB, binsINVBEdges);
+  histoPtEfficiencyL1T_OMTF = new TEfficiency("histoPtEfficiencyL1T_OMTF",";p_{T}^{GEN} [GeV];Efficiency", binsPT, binsPTEdges);
+  histoInvbetaEfficiencyL1T_OMTF = new TEfficiency("histoInvbetaEfficiencyL1T_OMTF", ";1/#beta^{GEN};Efficiency", binsINVB, binsINVBEdges);
+  histoPEfficiencyL1T_OMTF = new TEfficiency("histoPEfficiencyL1T_OMTF", ";p^{GEN} [GeV];Efficiency", binsP, binsPEdges);
+
+  histoPtEfficiencyL1T_EMTF = new TEfficiency("histoPtEfficiencyL1T_EMTF",";p_{T}^{GEN} [GeV];Efficiency", binsPT, binsPTEdges);
+  histoInvbetaEfficiencyL1T_EMTF = new TEfficiency("histoInvbetaEfficiencyL1T_EMTF", ";1/#beta^{GEN};Efficiency", binsINVB, binsINVBEdges);
+  histoEtaEfficiencyL1T_EMTF_A = new TEfficiency("histoEtaEfficiencyL1T_EMTF_A", ";#eta^{GEN};Efficiency", 100, -2.8, 2.8);
+  histoEtaEfficiencyL1T_EMTF_B = new TEfficiency("histoEtaEfficiencyL1T_EMTF_B", ";#eta^{GEN};Efficiency", 100, -2.8, 2.8);
+  histoPEfficiencyL1T_EMTF = new TEfficiency("histoPEfficiencyL1T_EMTF", ";p^{GEN} [GeV];Efficiency", binsP, binsPEdges);
+
+  EfficiencyRecoInvbetaEtaAll = new TH2F("EfficiencyRecoInvbetaEtaAll",";1/#beta^{GEN};#eta^{GEN};Efficiency",100,-2.8,2.8,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaEtaSelected = new TH2F("EfficiencyRecoInvbetaEtaSelected",";1/#beta^{GEN};#eta^{GEN};Efficiency",100,-2.8,2.8,binsINVB, binsINVBEdges);
   
-  EfficiencyInvbetaPhiAllBarrel = new TH2F("EfficiencyInvbetaPhiAllBarrel","EfficiencyInvbetaPhiAllBarrel",12,0,2*M_PI,binsINVB, binsINVBEdges);
-  EfficiencyInvbetaPhiSelectedBarrel = new TH2F("EfficiencyInvbetaPhiSelectedBarrel","EfficiencyInvbetaPhiSelectedBarrel",40,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaPhiAllBarrel = new TH2F("EfficiencyRecoInvbetaPhiAllBarrel",";1/#beta^{GEN};#phi^{GEN};Efficiency",12,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaPhiSelectedBarrel = new TH2F("EfficiencyRecoInvbetaPhiSelectedBarrel",";1/#beta^{GEN};#phi^{GEN};Efficiency",12,0,2*M_PI,binsINVB, binsINVBEdges);
 
-  EfficiencyInvbetaPhiAllEndcap = new TH2F("EfficiencyInvbetaPhiAllEndcap","EfficiencyInvbetaPhiAllEndcap",18,0,2*M_PI,binsINVB, binsINVBEdges);
-  EfficiencyInvbetaPhiSelectedEndcap = new TH2F("EfficiencyInvbetaPhiSelectedEndcap","EfficiencyInvbetaPhiSelectedEndcap",18,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaPhiAllEndcap = new TH2F("EfficiencyRecoInvbetaPhiAllEndcap",";1/#beta^{GEN};#phi^{GEN};Efficiency",18,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaPhiSelectedEndcap = new TH2F("EfficiencyRecoInvbetaPhiSelectedEndcap",";1/#beta^{GEN};#phi^{GEN};Efficiency",18,0,2*M_PI,binsINVB, binsINVBEdges);
+  
+  EfficiencyRecoInvbetaPhiAllOverlap = new TH2F("EfficiencyRecoInvbetaPhiAllOverlap",";1/#beta^{GEN};#phi^{GEN};Efficiency",6,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyRecoInvbetaPhiSelectedOverlap = new TH2F("EfficiencyRecoInvbetaPhiSelectedOverlap",";1/#beta^{GEN};#phi^{GEN};Efficiency",6,0,2*M_PI,binsINVB, binsINVBEdges);
 
-  EfficiencyInvbetaPhiAllOverlap = new TH2F("EfficiencyInvbetaPhiAllOverlap","EfficiencyInvbetaPhiAllOverlap",6,0,2*M_PI,binsINVB, binsINVBEdges);
-  EfficiencyInvbetaPhiSelectedOverlap = new TH2F("EfficiencyInvbetaPhiSelectedOverlap","EfficiencyInvbetaPhiSelectedOverlap",6,0,2*M_PI,binsINVB, binsINVBEdges);
 
+  EfficiencyInvbetaEtaAll = new TH2F("EfficiencyInvbetaEtaAll",";1/#beta^{GEN};#eta^{GEN};Efficiency",100,-2.8,2.8,binsINVB, binsINVBEdges);
+  EfficiencyInvbetaEtaSelected = new TH2F("EfficiencyInvbetaEtaSelected",";1/#beta^{GEN};#eta^{GEN};Efficiency",100,-2.8,2.8,binsINVB, binsINVBEdges);
+  
+  EfficiencyInvbetaPhiAllBarrel = new TH2F("EfficiencyInvbetaPhiAllBarrel",";1/#beta^{GEN};#phi^{GEN};Efficiency",12,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyInvbetaPhiSelectedBarrel = new TH2F("EfficiencyInvbetaPhiSelectedBarrel",";1/#beta^{GEN};#phi^{GEN};Efficiency",12,0,2*M_PI,binsINVB, binsINVBEdges);
+
+  EfficiencyInvbetaPhiAllEndcap = new TH2F("EfficiencyInvbetaPhiAllEndcap",";1/#beta^{GEN};#phi^{GEN};Efficiency",18,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyInvbetaPhiSelectedEndcap = new TH2F("EfficiencyInvbetaPhiSelectedEndcap",";1/#beta^{GEN};#phi^{GEN};Efficiency",18,0,2*M_PI,binsINVB, binsINVBEdges);
+
+  EfficiencyInvbetaPhiAllOverlap = new TH2F("EfficiencyInvbetaPhiAllOverlap",";1/#beta^{GEN};#phi^{GEN};Efficiency",6,0,2*M_PI,binsINVB, binsINVBEdges);
+  EfficiencyInvbetaPhiSelectedOverlap = new TH2F("EfficiencyInvbetaPhiSelectedOverlap",";1/#beta^{GEN};#phi^{GEN};Efficiency",6,0,2*M_PI,binsINVB, binsINVBEdges);
+
+  ///////////////////
+// TTree definitions //
+  //////////////////
 
   recoTree = new TTree("recoTree", "recoTree");
   recoTree->Branch("PDGID", &(recData.pdgId),32000, 99);
@@ -450,45 +493,6 @@ void Projekt::beginJob()
   generatedTree->Branch("BETA", &(generatedData.beta),32000, 99);
   generatedTree->Branch("INVBETA", &(generatedData.invbeta),32000, 99);
 
-  hscpTree = new TTree("simTree", "simTree");
-  hscpTree->Branch("EV", &(hitData.event), 32000, 99);
-  hscpTree->Branch("TR", &(hitData.track), 32000, 99);
-  hscpTree->Branch("PID", &(hitData.pid), 32000, 99);
-  hscpTree->Branch("SL", &(hitData.superlayer), 32000, 99);
-  hscpTree->Branch("ST", &(hitData.station), 32000, 99);
-  hscpTree->Branch("WH", &(hitData.wheel), 32000, 99);
-  hscpTree->Branch("SECT", &(hitData.sector), 32000, 99);
-  hscpTree->Branch("LYR", &(hitData.layer), 32000, 99);
-  hscpTree->Branch("X_L", &(hitData.localX), 32000, 99);
-  hscpTree->Branch("Y_L", &(hitData.localY), 32000, 99);
-  hscpTree->Branch("Z_L", &(hitData.localZ), 32000, 99);
-  hscpTree->Branch("X_G", &(hitData.globalX), 32000, 99);
-  hscpTree->Branch("Y_G", &(hitData.globalY), 32000, 99);
-  hscpTree->Branch("Z_G", &(hitData.globalZ), 32000, 99);
-  hscpTree->Branch("PT", &(hitData.pt), 32000, 99);
-  hscpTree->Branch("PHI", &(hitData.phi), 32000, 99);
-  hscpTree->Branch("R", &(hitData.r), 32000, 99);
-  hscpTree->Branch("ETA", &(hitData.eta), 32000, 99);
-  hscpTree->Branch("TOF", &(hitData.tof), 32000, 99);
-  hscpTree->Branch("BETA", &(hitData.beta), 32000, 99);
-  hscpTree->Branch("DISTVTX", &(hitData.distanceVTX), 32000, 99);
-  hscpTree->Branch("DISTIP", &(hitData.distanceIP), 32000, 99);
-  hscpTree->Branch("NX_L", &(hitData.nextLocalX), 32000, 99);
-  hscpTree->Branch("NY_L", &(hitData.nextLocalY), 32000, 99);
-  hscpTree->Branch("NZ_L", &(hitData.nextLocalZ), 32000, 99);
-  hscpTree->Branch("NX_G", &(hitData.nextGlobalX), 32000, 99);
-  hscpTree->Branch("NY_G", &(hitData.nextGlobalY), 32000, 99);
-  hscpTree->Branch("NZ_G", &(hitData.nextGlobalZ), 32000, 99);
-  hscpTree->Branch("DISTDIFF_G", &(hitData.globalHitDistDiff), 32000, 99);
-  hscpTree->Branch("NBETA", &(hitData.betaNextHit), 32000, 99);
-  hscpTree->Branch("GEANTTOFDIFF", &(hitData.diffTOFGeant), 32000, 99);
-  hscpTree->Branch("HITPTOFDIFF", &(hitData.diffTOFHitB), 32000, 99);
-  hscpTree->Branch("NEXTPTOFFDIFF", &(hitData.diffTOFNextB), 32000, 99);
-  hscpTree->Branch("SAMEWHEEL", &(hitData.samewheel), 32000, 99);
-  hscpTree->Branch("SAMESL", &(hitData.samesl), 32000, 99);
-  hscpTree->Branch("SAMESECT", &(hitData.samesect), 32000, 99);
-  hscpTree->Branch("SAMEST", &(hitData.samest), 32000, 99);
-
   invbetaTree = new TTree("invbetaTree", "invbetaTree");
   invbetaTree->Branch("PGEN",&(invbetaData.pgen), 32000, 99);
   invbetaTree->Branch("PRECO",&(invbetaData.preco), 32000, 99);
@@ -504,8 +508,9 @@ void Projekt::beginJob()
   invbetaTree->Branch("RECOPT",&(invbetaData.recoPt), 32000,99);
   invbetaTree->Branch("RECOETA",&(invbetaData.recoEta), 32000,99);
   invbetaTree->Branch("GENETA",&(invbetaData.genEta), 32000,99);
+  invbetaTree->Branch("RECOPHI",&(invbetaData.recoPhi), 32000,99);
+  invbetaTree->Branch("GENPHI",&(invbetaData.genPhi), 3200,99);
   invbetaTree->Branch("STMATCH",&(invbetaData.stationMatches), 32000,99);
-
 
   totalMCTree = new TTree("totalMCTree", "totalMCTree");
   totalMCTree->Branch("PT", &(totalMCData.pt), 32000, 99);
@@ -532,14 +537,13 @@ void Projekt::beginJob()
 
 void Projekt::endJob()
 {
-  /*cout << "MC HSCP: " << genMCCount << "PASS: " << genMCPassCount << endl;
+  cout << "MC HSCP: " << genMCCount << "PASS: " << genMCPassCount << endl;
   cout << "REC MUON: " << recCount << "PASS: " << recPassCount << endl;
   cout << "TEfficiency entries: " << counter << endl;
   cout << "Stau gen in detector: " << COUNTGEN << endl;
-  cout << "Total nr of events: " << theEventCount << endl;*/
+  cout << "Total nr of events: " << theEventCount << endl;
 
   recoTree->Write();
-  hscpTree->Write();
   generatedTree->Write();
   invbetaTree->Write();
   totalMCTree->Write();
@@ -556,6 +560,18 @@ void Projekt::endJob()
   histoPCheck->Write();
   histoInvbetaCheck->Write();
 
+  EfficiencyRecoInvbetaEtaAll->Write();
+  EfficiencyRecoInvbetaEtaSelected->Write();
+
+  EfficiencyRecoInvbetaPhiAllBarrel->Write();
+  EfficiencyRecoInvbetaPhiSelectedBarrel->Write();
+
+  EfficiencyRecoInvbetaPhiAllEndcap->Write();
+  EfficiencyRecoInvbetaPhiSelectedEndcap->Write();
+
+  EfficiencyRecoInvbetaPhiAllOverlap->Write();
+  EfficiencyRecoInvbetaPhiSelectedOverlap->Write(); 
+  
   EfficiencyInvbetaEtaAll->Write();
   EfficiencyInvbetaEtaSelected->Write();
 
@@ -578,56 +594,24 @@ void Projekt::endJob()
   histoEtaEfficiencyL1T->Write();
   histoInvbetaEfficiencyL1T->Write();
 
-  histoPtEfficiencyL1T_eta14->Write();
-  histoPEfficiencyL1T_eta14->Write();
-  histoEtaEfficiencyL1T_eta14->Write();
-  histoInvbetaEfficiencyL1T_eta14->Write();
+  histoPtEfficiencyL1T_BMTF->Write();
+  histoInvbetaEfficiencyL1T_BMTF->Write();
+  histoPEfficiencyL1T_BMTF->Write();
+  
+  histoPtEfficiencyL1T_OMTF->Write();
+  histoInvbetaEfficiencyL1T_OMTF->Write();
+  histoPEfficiencyL1T_OMTF->Write();
+    
+  histoPtEfficiencyL1T_EMTF->Write();
+  histoInvbetaEfficiencyL1T_EMTF->Write();
+  histoPEfficiencyL1T_EMTF->Write();
+  histoEtaEfficiencyL1T_EMTF_A->Write();
+  histoEtaEfficiencyL1T_EMTF_B->Write();
 
   histoMuonStationsTotal->Write();
   histoMuonStationsSelected->Write();         
 
   myRootFile->Close();
-
-  delete histoDeltaR;
-  delete histoMinDeltaR;
-  delete histoGenDeltaR;
-  delete histoGenDeltaPhi;
-  delete histoGenDeltaEta;
-
-  delete histoEtaCheck;
-  delete histoPtCheck;
-  delete histoPCheck;
-  delete histoInvbetaCheck;
-
-  delete EfficiencyInvbetaEtaAll;
-  delete EfficiencyInvbetaEtaSelected;
-
-  delete EfficiencyInvbetaPhiAllBarrel;
-  delete EfficiencyInvbetaPhiSelectedBarrel; 
-
-  delete EfficiencyInvbetaPhiAllEndcap;
-  delete EfficiencyInvbetaPhiSelectedEndcap;
-
-  delete EfficiencyInvbetaPhiAllOverlap;
-  delete EfficiencyInvbetaPhiSelectedOverlap;
-
-  delete histoPtEfficiency;
-  delete histoPEfficiency;
-  delete histoEtaEfficiency;
-  delete histoInvbetaEfficiency;
-
-  delete histoPtEfficiencyL1T;
-  delete histoPEfficiencyL1T;
-  delete histoEtaEfficiencyL1T;
-  delete histoInvbetaEfficiencyL1T;
-
-  delete histoPtEfficiencyL1T_eta14;
-  delete histoPEfficiencyL1T_eta14;
-  delete histoEtaEfficiencyL1T_eta14;
-  delete histoInvbetaEfficiencyL1T_eta14;  
-
-  delete histoMuonStationsTotal;
-  delete histoMuonStationsSelected;
 
   delete myRootFile;
   //cout << "HERE Cwiczenie::endJob()" << endl;
@@ -635,553 +619,302 @@ void Projekt::endJob()
 
 void Projekt::analyze(
     const edm::Event& ev, const edm::EventSetup& es){
-  //cout << " -------------------------------- HERE Cwiczenie::analyze "<< endl;
-  cout <<"*** Cwiczenie, analyze event: " << ev.id()<<" useful event count:"<<++theEventCount << endl;
+    //cout << " -------------------------------- HERE Cwiczenie::analyze "<< endl;
+    cout <<"*** Cwiczenie, analyze event: " << ev.id()<<" useful event count:"<<++theEventCount << endl;
 
-//  edm::Handle<vector<l1t::TrackerMuon> > gmtColl;
-//  ev.getByToken(inputGMT, gmtColl);
-//  const vector<l1t::TrackerMuon> & gmtMuons = *gmtColl.product();
-//  histo->Fill(gmtMuons.size());
-    
-  ////////////////////////////////////////
-// Assigning global geometry to analysis //
-  //////////////////////////////////////
+  //  edm::Handle<vector<l1t::TrackerMuon> > gmtColl;
+  //  ev.getByToken(inputGMT, gmtColl);
+  //  const vector<l1t::TrackerMuon> & gmtMuons = *gmtColl.product();
+  //  histo->Fill(gmtMuons.size());
 
-  auto const & globalGeometry = es.getData(theGeometryToken);  
+    auto const & globalGeometry = es.getData(theGeometryToken);  //assign global geometry
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
-// GENERATED PARTICLE ANALYSIS (MC LEVEL)                                                             //
-// Definition of genParticle vector, which is needed at this stage to extract generated particle mass //
-// (Value of mass for all HSCPs should be the same)                                                   //
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////
+    // INITIAL GEN ANALYSIS //
+      /////////////////////
 
-  const vector<reco::GenParticle> & genParticles = ev.get(inputGP);
-  int  genStauCandidates = 0;
-
-  for (const auto & gp : genParticles) {
-  	if (abs(gp.pdgId()) == 13 && gp.status() == 1){ //generated particle is a muon (which must be stable but that's a given)
-      double muon_p = gp.pt()*cosh(gp.eta());
-			double muon_phi = gp.phi();
-      if (muon_phi <= 0){
-				muon_phi += 2*M_PI;
-			}
-			double muon_beta = muon_p/gp.energy();
-    }
-    else if (abs(gp.pdgId())>1000000) { //generated particle is BSM particle (e.g. stau->pdgID=1000015
-			if(gp.status()==1){ // particle is stable
-        genMCCount++;
-        hscpMass = gp.mass();
-				double hscp_p = gp.pt()*cosh(gp.eta());
-				double hscp_phi = gp.phi();
-        double hscp_theta = gp.theta();
-				if(hscp_phi <= 0){
-					hscp_phi += 2*M_PI;
-				}
-				double hscp_beta = hscp_p/gp.energy();
-      
-      if(gp.pt()>50 && abs(gp.eta())<2.1 ){
-      genMCPassCount++;  
-      genStauCandidates++;
-      generatedData.pdgId = gp.pdgId();
-      generatedData.event = theEventCount;
-      generatedData.phi = hscp_phi;
-      generatedData.beta = hscp_beta;
-      generatedData.invbeta = 1/hscp_beta;
-      generatedData.theta = hscp_theta;
-      generatedData.pT = gp.pt();
-      generatedData.eta = gp.eta();
-      generatedData.mass = hscpMass;
-      generatedTree->Fill();
-      }
-    }
-  }
-  if(gp.status()==1){
-    totalMCData.pt = gp.pt();
-    totalMCData.p = gp.p();
-    totalMCData.eta = gp.eta();
-    totalMCData.invbeta = gp.energy()/gp.p();
-    totalMCTree->Fill();
-  }
-}
-   
-
-  ///////////////////////////////////
-// SimTrack/SimVtx vector definitions //
-  //////////////////////////////////
-
-/*  edm::Handle<edm::SimTrackContainer> simTrk;
-  ev.getByToken(inputSim, simTrk);
-  const vector<SimTrack>  & mySimTracks = *(simTrk.product());
-  cout <<" SIMULATED TRACKS: "<<mySimTracks.size()<<endl;
-
-  edm::Handle<edm::SimVertexContainer> simVtx;
-  ev.getByToken(inputVtx, simVtx);
-  const vector<SimVertex> & mySimVerts= *(simVtx.product());
-  cout <<" SIMULATED VERTICES: "<<mySimVerts.size()<<endl;
-
-  //////////////////
-// SIMHIT ANALYSIS //
-  ////////////////
-
- const vector<PSimHit> & simDTHits = ev.get(inputHitsDT);
-  cout <<"Number of simulated DT hits in event: "<<simDTHits.size() << endl;
-
-  for(const auto &track:mySimTracks){
-    if(track.trackId()>10) break;
-    cout << "Track: " <<track<< endl;
-    cout << track.trackId() << ", " << track.vertIndex() << ", " << endl;
-    cout << "Position rho = " << mySimVerts[track.vertIndex()].position().Rho() << ", Position z = " << mySimVerts[track.vertIndex()].position().z() << endl;
-    cout << "Parent index: " <<  mySimVerts[track.vertIndex()].parentIndex() << endl; 
-  }
-  //////////////
-// DT CHAMBERS //
-  ////////////
-
-  int  hitCount = 0;
-
-  for (vector<PSimHit>::const_iterator iter=simDTHits.begin();iter<simDTHits.end();iter++){ //Iterator is from 0
-    
-    const PSimHit & hit = *iter;
-
-    if(abs(hit.particleType())>1000000){
-      DTLayerId dtDetLayerId(hit.detUnitId()); 
-      cout << "======================================HIT SUMMARY==========================================" << std::endl;
-      
-      cout << dtDetLayerId << endl;
-      int  eventNr = theEventCount;
-	    int  pid = hit.particleType();
-      int  trackNr = hit.trackId(); 
-      Local3DPoint localPosition = hit.localPosition();
-      GlobalPoint globalPosition = globalGeometry.idToDet(dtDetLayerId)->toGlobal(hit.localPosition());
-      double r = sqrt((globalPosition.x()*globalPosition.x())+(globalPosition.y()*globalPosition.y()));
-      LocalVector p = hit.momentumAtEntry();
-      double pt = sqrt((p.y()*p.y())+(p.z()*p.z()));
-      double phi = globalPosition.phi();
-      if(phi<0){phi = phi + 2*M_PI;}
-      double theta = globalPosition.theta();
-      double eta = -log(tan(abs(theta)/2));
-      double tof = hit.timeOfFlight();
-      double distanceIP = globalPosition.mag();
-
-     math::XYZTLorentzVectorD hscpVertexV = mySimVerts[mySimTracks[hit.trackId()-1].vertIndex()].position();
-      cout << "HIT VERTEX (x0,y0,z0) = (" << hscpVertexV << ")" << endl;
-      double distanceVTX = abs(distanceIP) - abs(hscpVertexV.mag());
-      cout << "simHit: " << hit << endl;
-      cout << "Track ID: " << hit.trackId() << " | Det Unit ID: " << hit.detUnitId() << " | PID: " << hit.particleType() << " | p: "<< hit.momentumAtEntry() <<" | phi: " << hit.phiAtEntry() << " | theta: " << hit.thetaAtEntry() << " | TOF: " << hit.timeOfFlight() << endl;
-             
-  ////////////////////////////
-// TOF analysis (preliminary) // 
-  ////////////////////////////
-
-	   double betaHit = p.mag()/sqrt((p.mag()*p.mag())+(hscpMass*hscpMass)); //.pabs() calculates the length of the vector pointing to the hit from (0,0,0) 
-    															//mass and momenta in GeV (no unit conversion required)
-
-	   cout << "#Beta(hit) = " << betaHit << endl;
-
-    double tofCalculated = distanceIP*1e9*0.01/(betaHit*TMath::C()); //multiplied by 1e9 and 0.01 for tof to be in ns! 
-    cout << "HIT STATION: " << dtDetLayerId.station() << " || HIT SUPERLAYER: " << dtDetLayerId.superlayer() << "|| HIT LAYER: " << dtDetLayerId.layer() << endl;
-    cout << "TOF FROM HIT = " << tof << " ns" << " || TOF CALCULATED = " << tofCalculated << " ns" << " || BETA CALCULATED = " << betaHit <<endl;
-    cout << "LOCAL POSITION (x,y,z)cm = (" << localPosition.x() << ", " << localPosition.y() << ", " << localPosition.z() << ")" << endl;
-    cout << "GLOBAL POSITION (x,y,z)cm = (" << globalPosition.x() << ", " << globalPosition.y() << ", " << globalPosition.z() << ")" << endl;
-    cout << "HIT DISTANCE FROM IP = " << distanceIP << " cm" << endl;
-    //cout << "HIT DISTANCE FROM VTX = " << distanceVTX << " cm" << endl;
-    cout << "HIT MOMENTUM = " << p.mag() << " GeV" << endl;   
-
-  //////////////////
-// TOF BETWEEN HITS // 
-  //////////////////
-
-      if(iter!=simDTHits.end()){
-        const PSimHit & nextHit = *(iter+1);
-        if(hit.trackId()==nextHit.trackId()){
-        DTLayerId nextDTDetLayerId(nextHit.detUnitId());
-        
-        Local3DPoint nextHitLocal = nextHit.localPosition();
-        GlobalPoint nextHitGlobal = globalGeometry.idToDet(nextDTDetLayerId)->toGlobal(nextHitLocal);  
-
-        Vector3DBase lHitDistV = nextHitLocal - localPosition;
-        Vector3DBase gHitDistV = nextHitGlobal - globalPosition;
-        cout << "GLOBAL INTERHIT DISTANCE (VECTOR) = " << gHitDistV << endl;
-
-        double gHitDist = sqrt(gHitDistV.x()*gHitDistV.x() + gHitDistV.y()*gHitDistV.y() + gHitDistV.z()*gHitDistV.z());
-        double lHitDist = sqrt(lHitDistV.x()*lHitDistV.x() + lHitDistV.y()*lHitDistV.y() + lHitDistV.z()*lHitDistV.z());
-
-        cout << "DISTANCE FROM NEXT HIT (GLOBAL): " << gHitDist << " cm" << endl; 
-        cout << "DISTANCE FROM NEXT HIT (LOCAL): " << lHitDist << " cm" << endl;
-      
-        double betaNextHit = nextHit.pabs()/sqrt((nextHit.pabs()*nextHit.pabs())+(hscpMass*hscpMass));
-
-        double tofGivenDifference = nextHit.timeOfFlight() - tof;
-        double tofBetweenHitsCurrent = gHitDist*1e9*0.01/((betaHit)*TMath::C());
-        double tofBetweenHitsNext = gHitDist*1e9*0.01/((betaNextHit)*TMath::C());
-
-        cout << "#DeltaTOF FROM HIT TOFs = " << tofGivenDifference << " ns || #DeltaTOF CALCULATED (hit #beta) = " << tofBetweenHitsCurrent << " ns || #DeltaTOF CALCULATED (next hit #beta) = " << tofBetweenHitsNext << endl;
-        cout << "PROCESS TYPE: " << hit.processType() << endl;
-        cout << "BETA AT HIT: " << hit.pabs()/sqrt((hit.pabs()*hit.pabs())+(hscpMass*hscpMass)) << endl;
-
-        nlines++;
-      
-      hitData.event = eventNr;
-      hitData.track = trackNr;
-      hitData.pid = pid;
-      hitData.superlayer = dtDetLayerId.superlayer();
-      hitData.station = dtDetLayerId.station();
-      hitData.wheel = dtDetLayerId.wheel();
-      hitData.sector = dtDetLayerId.sector();
-      hitData.layer = dtDetLayerId.layer();
-      hitData.localX = localPosition.x();
-      hitData.localY = localPosition.y();
-      hitData.localZ = localPosition.z();
-      hitData.globalX = globalPosition.x();
-      hitData.globalY = globalPosition.y();
-      hitData.globalZ = globalPosition.z();
-      hitData.pt = pt;
-      hitData.phi = phi;
-      hitData.r = r;
-      hitData.eta = eta;
-      hitData.tof = tof;
-      hitData.beta = betaHit;
-      //hitData.distanceVTX = distanceVTX;
-      hitData.distanceIP = distanceIP;
-      hitData.nextLocalX = nextHitLocal.x();
-      hitData.nextLocalY = nextHitLocal.y();
-      hitData.nextLocalZ = nextHitLocal.z();
-      hitData.nextGlobalX = nextHitGlobal.x();
-      hitData.nextGlobalY = nextHitGlobal.y();
-      hitData.nextGlobalZ = nextHitGlobal.z();
-      hitData.globalHitDistDiff = gHitDist;
-      hitData.betaNextHit = betaNextHit;
-      hitData.diffTOFGeant = tofGivenDifference;
-      hitData.diffTOFHitB = tofBetweenHitsCurrent;
-      hitData.diffTOFNextB = tofBetweenHitsNext;
-
-      if(nextDTDetLayerId.wheel() == dtDetLayerId.wheel()){hitData.samewheel = true;}
-      else{hitData.samewheel = false;}
-      if(nextDTDetLayerId.superlayer() == dtDetLayerId.superlayer()){hitData.samesl = true;}
-      else{hitData.samesl = false;}
-      if(nextDTDetLayerId.sector() == dtDetLayerId.sector()){hitData.samesect = true;}
-      else{hitData.samesect = false;}
-      if(nextDTDetLayerId.station() == dtDetLayerId.station()){hitData.samest = true;}
-      else{hitData.samest = false;}
-
-      hscpTree->Fill();
-
-
+    const vector<reco::GenParticle> & genParticles = ev.get(inputGP);
+    for (const auto & gp : genParticles) {
+        if (abs(gp.pdgId())>1000000 && gp.status()==1){ //BSM+stable
+            genMCCount++;
+            double hscpID = gp.pdgId();
+            double hscpP = gp.p();
+            double hscpPt = gp.pt();
+            double hscpPhi = gp.phi();
+            double hscpTheta = gp.theta();
+            double hscpEta = gp.eta();
+            double hscpMass = gp.mass(); //predefined!
+            double hscpInvbeta = Invbeta(hscpP,hscpMass);
+            if(hscpPhi <= 0) hscpPhi += 2*M_PI;    
+            if(hscpPt<50 || abs(hscpEta)>2.1) continue; //2.1 is regarded as the point up to which the trigger works well
+            genMCPassCount++;  
+            generatedData.pdgId = hscpID;
+            generatedData.event = theEventCount;
+            generatedData.phi = hscpPhi;
+            generatedData.invbeta = hscpInvbeta;
+            generatedData.theta = hscpTheta;
+            generatedData.pT = hscpPt;
+            generatedData.eta = hscpEta;
+            generatedData.mass = hscpMass;
+            generatedTree->Fill();
         }
-      hitCount++; //has to be here in order for hit count to match numbering in hit ntuples :)
-}
     }
-  }*/
-  //////////////////////////
-// Simulated track analysis //
-  //////////////////////////
 
-  /*for (std::vector<SimTrack>::const_iterator it=mySimTracks.begin(); it<mySimTracks.end(); it++) {
-    const SimTrack & track = *it;
-    if ( track.type() == -99) continue;
-    if ( track.vertIndex() != 0) continue;
+    //////////////////
+  // RECHIT ANALYSIS //
+    ////////////////
 
-    double phi_sim = track.momentum().phi(); //momentum azimutal angle
-    double pt_sim = track.momentum().pt(); //transverse momentum
-    double eta_sim = track.momentum().eta(); //pseudorapidity
+    edm::Handle<vector<reco::Muon>> muonHandle;
+    ev.getByToken(inputRecMuons, muonHandle);
+    const vector<reco::Muon> & recoMuons = *muonHandle.product();
 
-    if(track.type()>1000000) hscpCount++;
+    edm::Handle<edm::ValueMap<reco::MuonTimeExtra>> muonExtraHandle;
+    ev.getByToken(inputRecMuonsExtra,muonExtraHandle);
+    edm::ValueMap<reco::MuonTimeExtra> muonValueMap = *muonExtraHandle;
 
-  }*/
-
-  //////////////////
-// RECHIT ANALYSIS //
-  ////////////////
-
-  edm::Handle<edm::ValueMap<reco::MuonTimeExtra>> muonExtraHandle;
-  ev.getByToken(inputRecMuonsExtra,muonExtraHandle);
-  edm::Handle<vector<reco::Muon>> muonHandle;
-  ev.getByToken(inputRecMuons, muonHandle);
-  const vector<reco::Muon> & recoMuons = *muonHandle.product();
-  const unsigned int eventRecMuons = recoMuons.size();
-  //cout << eventRecMuons << " muons in event" << endl;
-  edm::ValueMap<reco::MuonTimeExtra> muonValueMap = *muonExtraHandle;
-  //cout << "=============RECO SUMMARY=============" << endl;
-  for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
-    const reco::Muon & recoCandidate = *iter;
-    double phiReco = recoCandidate.phi();
-    if(phiReco <= 0){
-			phiReco += 2*M_PI;
-	  }
-    double thetaReco = recoCandidate.theta();
-    double pTReco = recoCandidate.pt();
-    double etaReco = recoCandidate.eta();
-    int  pdgIdReco = recoCandidate.pdgId();
-    double betaReco = recoCandidate.p()/sqrt(recoCandidate.p()*recoCandidate.p()+hscpMass*hscpMass);
-
-    //cout << "No. chambers: " << recoCandidate.numberOfChambers() << endl;    
-
-    //cout << "CANDIDATE " << recoMuonCount << " | PDG ID:" << pdgIdReco << " pT: " << pTReco <<  " phi: " << phiReco << " #eta: " << etaReco << "theta: " << thetaReco << endl;
-    //cout << "            Vertex position (x,y,z): " <<  recoCandidate.vertex() << endl;
-    recCount++;
-    if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate)){
-      recData.pdgId = pdgIdReco;
-      recData.event = theEventCount;
-      recData.phi = phiReco;
-      recData.theta = thetaReco;
-      recData.pT = pTReco;
-      recData.eta = etaReco;
-      recData.beta = betaReco;
-      recData.invbeta = 1/betaReco;
-      recData.mass = recoCandidate.mass();
-      recData.vx = recoCandidate.vx();
-      recData.vy = recoCandidate.vy();
-      recData.vz = recoCandidate.vz();
-      recoTree->Fill();
-      recPassCount++;
-    }
-  }
-
-  ////////////////////////////
-//  DELTA R GEN-RECO MATCHING // 
-  ////////////////////////// 
-    
-  int  countingMatches = 0;
-  for (const auto & gp : genParticles){
-    long unsigned int gpMatchCount = 0;
-    double genInvbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
-    if(gp.pt()>50 && abs(gp.eta())<2.1 && abs(gp.pdgId())>1000000 && gp.status()==1){
-      for (const auto & gp2 : genParticles){
-        if(gp2.pt()>50 && abs(gp2.eta())<2.1 && abs(gp2.pdgId())>1000000 && gp2.status()==1){
-          if(gpMatchCount==1){
-            continue;
-          }
-          double deltaR = reco::deltaR(gp,gp2);
-          double deltaPhi = abs(gp.phi() - gp2.phi());
-          double deltaEta = abs(gp.eta() - gp2.eta());
-          //cout << "debug2: " << deltaR << endl;
-          if(deltaR>0.1){
-            //cout << "ETA 1: " << gp.eta() << " PHI: " << gp.phi() << " PT: " << gp.pt() << " DELTA R: " << deltaR << endl;
-            //cout << "ETA 2: " << gp2.eta() << " PHI: " << gp2.phi() << " PT: " << gp2.pt() << " DELTA R: " << deltaR << endl;
-            //cout << print(gp) << endl;
-            //cout << print(gp2) << endl << endl;
-            histoGenDeltaR->Fill(deltaR);
-            histoGenDeltaPhi->Fill(deltaEta);
-            histoGenDeltaEta->Fill(deltaPhi);
-            gpMatchCount++;
-          }
-        }
-      }
-      
-      double minDeltaR = 100;
-      int  recoMuonCount = 0;
-      for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
-        reco::MuonRef muref(muonHandle,recoMuonCount);
-        reco::MuonTimeExtra muonExtraData = (muonValueMap)[muref];
+    for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
+        recCount++;
         const reco::Muon & recoCandidate = *iter;
-        double pTReco = recoCandidate.pt();
-        double etaReco = recoCandidate.eta();
-        if(pTReco>50 && abs(etaReco)<2.1 && isTightMuon(recoCandidate) && abs(recoCandidate.pdgId())==13){
-          //cout << "NEW REC CANDIDATE" << endl;
-          double deltaR = reco::deltaR(gp,recoCandidate);
-          //cout << "here" << endl;
-          //cout << "delta R: " << deltaR << endl; 
-          histoDeltaR->Fill(deltaR);
-          if(deltaR<minDeltaR){
-            minDeltaR = deltaR;
-          }
-          
-          double innerTrackPt = recoCandidate.innerTrack()->pt();
-          double outerTrackPt = recoCandidate.outerTrack()->pt();
-          double recoPt = recoCandidate.pt();
-          double genPt = gp.pt();
-
-          invbetaData.innerrecoPt = innerTrackPt;
-          invbetaData.outerrecoPt = outerTrackPt;
-          invbetaData.genPt = genPt;
-          invbetaData.recoPt = recoPt;
-          double genEta = gp.eta();
-          double recoEta = recoCandidate.eta();
-
-          double genP = gp.p();
-          double recoP = recoCandidate.p();
-          double recInvBetaMan = 1/(recoP/sqrt(recoP*recoP + hscpMass*hscpMass));
-          //cout << "recoP: " << recoP << "genP: " << genP << endl;
-          double recInvBetaRec = muonExtraData.inverseBeta();
-          double recInvBetaRecError = muonExtraData.inverseBetaErr();
-          //cout << "Reco p: " << recoCandidate.p() << "genInvBeta: " << genInvbeta << "recInvBetaMan: " << recInvBetaMan << "recInvBetaRec: " << recInvBetaRec << endl;
-          invbetaData.event = theEventCount;
-          invbetaData.pgen = genP;
-          invbetaData.preco = recoP;
-          invbetaData.invbetagen = genInvbeta;
-          invbetaData.invbetamanual = recInvBetaMan;
-          invbetaData.invbetareco = recInvBetaRec;
-          invbetaData.invbetarecoerror = recInvBetaRecError;
-          invbetaData.deltaR = deltaR;
-          invbetaData.recoEta = recoEta;
-          invbetaData.stationMatches = recoCandidate.numberOfMatchedStations();
-          int  matchedStations = recoCandidate.numberOfMatchedStations();
-          if(deltaR<0.1){
-            countingMatches++;
-          }
-          invbetaData.genEta = genEta;
-          invbetaTree->Fill();       
-        }
-
-        recoMuonCount++;
-      }
-      histoMinDeltaR->Fill(minDeltaR);
-      //cout << countingMatches << endl;
+        double recoPhi = recoCandidate.phi();
+        if(recoPhi <= 0) recoPhi += 2*M_PI;
+        double recoTheta = recoCandidate.theta();
+        double recoPt = recoCandidate.pt();
+        double recoP = recoCandidate.p();
+        double recoEta = recoCandidate.eta();
+        int  recoID = recoCandidate.pdgId();
+        double recoInvbeta = Invbeta(recoP,hscpMass);
+        if(recoPt<50 || abs(recoEta)>2.1 || isTightMuon(recoCandidate)==false) continue;
+        recPassCount++;
+        recData.pdgId = recoID;
+        recData.event = theEventCount;
+        recData.phi = recoPhi;
+        recData.theta = recoTheta;
+        recData.pT = recoPt;
+        recData.eta = recoEta;
+        recData.invbeta = recoInvbeta;
+        recData.vx = recoCandidate.vx();
+        recData.vy = recoCandidate.vy();
+        recData.vz = recoCandidate.vz();
+        recoTree->Fill();
     }
-  }
 
-  //////////////////
-// EFFICIENCY PLOTS //
-  //////////////////
-  for (const auto & gp : genParticles) {
-    double invbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
-    if(abs(gp.pdgId())>1000000 && gp.status()==1 && abs(gp.eta())<2.1){
-      //cout << "NEW GEN" << endl;
-      COUNTGEN++;
-      histoMuonStationsTotal->Fill(invbeta,0);
-      //histoMuonStationsTotal->Fill(invbeta,1);
-      histoMuonStationsTotal->Fill(invbeta,2);
-      histoMuonStationsTotal->Fill(invbeta,3);
-      histoMuonStationsTotal->Fill(invbeta,4);
-      histoMuonStationsTotal->Fill(invbeta,5);
-      int rec = 0;
-      int matchedStations = 0;
-      //double deltaRValueRec = 0;
-      for(vector<reco::Muon>::const_iterator iter = recoMuons.begin(); iter<recoMuons.end();iter++){
-        const reco::Muon & recoCandidate = *iter;  
-        double deltaR = reco::deltaR(gp,recoCandidate);
-        //cout << "DELTA R VALUE: " << deltaR << endl;
-        if(recoCandidate.pt()>50 && abs(recoCandidate.eta())<2.1 && isTightMuon(recoCandidate) && abs(recoCandidate.pdgId())==13 && deltaR<0.1){
-          rec++;
-          //deltaRValueRec = deltaR;
-          matchedStations = recoCandidate.numberOfMatchedStations();
-          //cout << gp.pt() << " is the passing pT value " << endl;
-          //cout << gp.eta() << " is the passing eta value " << endl;
-          histoPtEfficiency->Fill(1,gp.pt());
-          histoPEfficiency->Fill(1,gp.p());
-          histoEtaEfficiency->Fill(1,gp.eta());
-          histoInvbetaEfficiency->Fill(1,invbeta);
-          histoMuonStationsSelected->Fill(invbeta,matchedStations);
-          //cout << "REC PARAMS PASS: PT " << gp.pt() <<", ETA "<< gp.eta() << ", DELTAR " << deltaRValueRec << endl;
+    ////////////////////////////////
+  //  MATCHING (GEN/GEN + GEN/RECO) // 
+    ///////////////////////////////
+    bool gpMatchCount=false;  
+    for (const auto & gp : genParticles){          
+        double hscpID = gp.pdgId();
+        double hscpP = gp.p();
+        double hscpPt = gp.pt();
+        double hscpPhi = gp.phi();
+        double hscpTheta = gp.theta();
+        double hscpEta = gp.eta();
+        double hscpMass = gp.mass(); //predefined!
+        double hscpInvbeta = Invbeta(hscpP,hscpMass);
+        if(hscpPt<50 || abs(hscpEta)>2.1 || abs(hscpID)<1000000 || gp.status()!=1) continue;
+        for (const auto & gp2 : genParticles){
+            double hscpID_2 = gp2.pdgId();
+            double hscpPt_2 = gp2.pt();
+            double hscpPhi_2 = gp2.phi();
+            double hscpEta_2 = gp2.eta();
+            if(hscpPt_2<50 || abs(hscpEta_2)>2.1 || abs(hscpID_2)<1000000 || gp2.status()!=1 || hscpID==hscpID_2) continue;
+            if(gpMatchCount==true) continue;
+            gpMatchCount=true;
+            double deltaR = reco::deltaR(gp,gp2);
+            double deltaPhi = abs(hscpPhi - hscpPhi_2);
+            if(deltaPhi>M_PI) deltaPhi -= 2*M_PI;
+            deltaPhi = abs(deltaPhi);
+            double deltaEta = abs(hscpEta - hscpEta_2);
+            histoGenDeltaR->Fill(deltaR);
+            histoGenDeltaPhi->Fill(deltaPhi);
+            histoGenDeltaEta->Fill(deltaEta);
         }
-        else{
-          histoPtEfficiency->Fill(0,gp.pt());
-          histoPEfficiency->Fill(0,gp.p());
-          histoEtaEfficiency->Fill(0,gp.eta());
-          histoInvbetaEfficiency->Fill(0,invbeta);
-          histoMuonStationsSelected->Fill(invbeta,0);
-        }
-      }
     }
-  }
-
-  //////////////////////////////
-// TRIGGER EFFICIENCY ANALYSIS //
-  ////////////////////////////
-
-  const l1t::MuonBxCollection & gmts = ev.get(theGmtToken); 
-  int bxNumber = 0;
-
-  edm::Handle<BXVector<l1t::Muon>> l1tMuonHandle;
-  ev.getByToken(theGmtToken, l1tMuonHandle);
-  const BXVector<l1t::Muon> & l1tMuons = *l1tMuonHandle.product();
-  const unsigned int eventL1tMuons = l1tMuons.size();
-  for (const auto & gp : genParticles){
-    double invbeta = 1/(gp.p()/sqrt(gp.p()*gp.p() + hscpMass*hscpMass));
-    double gpPhi = gp.phi();
-    if (gpPhi <= 0){
-				gpPhi += 2*M_PI;
-		}
-    int l1tPPtInvbeta = 0;
-    int l1tEta = 0;
-    int l1tPPtInvbeta_eta14 = 0;
-    double etaMuon = 0;
-    double pTMuon = 0;
-    double pMuon = 0;
-    double invbetaMuon = 0;
-   // double deltaRValue = 0;
-    if(abs(gp.pdgId())>1000000 && gp.status()==1){
-      //cout << "NEW GEN PARTICLE" << endl;
-      for (l1t::MuonBxCollection::const_iterator it = gmts.begin(bxNumber); it != gmts.end(bxNumber); ++it){
-        const l1t::Muon & l1tMuon = *it;  
-        double l1tMuonInvbeta = 1/(l1tMuon.p()/sqrt(l1tMuon.p()*l1tMuon.p() + 0.105*0.105));
-        double deltaR = reco::deltaR(gp,l1tMuon);
-        if(deltaR<0.4){ //22 GeV pT cut corresponds to cut in SingleMu trigger (i.e. most basic L1T trigger)
-/*pT*/    l1tEta++;
-          gmtMuonData.pt = l1tMuon.pt();
-          gmtMuonData.ptGen = gp.pt();
-          gmtMuonData.p = l1tMuon.p();
-          gmtMuonData.pGen = gp.p();
-          gmtMuonData.eta = l1tMuon.eta();
-          gmtMuonData.etaGen = gp.eta();
-          //cout << "MASS CHECK: " << hscpMass << endl;
-          gmtMuonData.invbeta = l1tMuonInvbeta;
-          gmtMuonData.invbetaGen = invbeta;
-          gmtMuonData.deltaR = deltaR;
-          gmtMuonTree->Fill();
-          //cout << "ETA COUNTER STATUS: " << l1tEta << endl;
-          //cout << "PAIR FOUND" << endl;
-/*p*/     l1tPPtInvbeta++;
-          //cout << "L1T counter status" << l1tPPtInvbeta << endl;
-          //cout << " PASS: DELTA = " << deltaR << ", ETA L1T = " << etaMuon << ", ETA GP: " <<gp.eta() << endl;
-          // deltaRValue = deltaR;  
+        
+    for (const auto & gp : genParticles){ 
+        double minDeltaR = 100;
+        int  recoMuonCount = 0;
+        int hscpID = gp.pdgId();
+        double hscpP = gp.p();
+        double hscpPt = gp.pt();
+        double hscpEta = gp.eta();
+        double hscpPhi = gp.phi();
+        double hscpMass = gp.mass(); //predefined!
+        double hscpInvbeta = Invbeta(hscpP,hscpMass);  
+        if(hscpPt<50 || abs(hscpEta)>2.1 || abs(hscpID)<1000000 || gp.status()!=1) continue;
+        for(vector<reco::Muon>::const_iterator iter = recoMuons.begin();iter<recoMuons.end();iter++){
+            reco::MuonRef muref(muonHandle,recoMuonCount);
+            recoMuonCount++;
+            reco::MuonTimeExtra muonExtraData = (muonValueMap)[muref];
+            const reco::Muon & recoCandidate = *iter;
+            double recoPt = recoCandidate.pt();
+            double recoEta = recoCandidate.eta();
+            double recoP = recoCandidate.p();
+            double recoPhi = recoCandidate.phi();
+            double recInvBetaMan = Invbeta(recoP,hscpMass);
+            double recInvBetaRec = muonExtraData.inverseBeta();
+            double recInvBetaRecError = muonExtraData.inverseBetaErr();
+            if(recoPt<50 || abs(recoEta)>2.1 || isTightMuon(recoCandidate)==false || abs(recoCandidate.pdgId())!=13) continue;
+            double deltaR = reco::deltaR(gp,recoCandidate);
+            histoDeltaR->Fill(deltaR);
+            if(deltaR<minDeltaR) minDeltaR = deltaR;
+            invbetaData.event = theEventCount;
+            invbetaData.pgen = hscpP;
+            invbetaData.preco = recoP;
+            invbetaData.genPt = hscpPt;
+            invbetaData.recoPt = recoPt;
+            invbetaData.invbetagen = hscpInvbeta;
+            invbetaData.invbetamanual = recInvBetaMan;
+            invbetaData.invbetareco = recInvBetaRec;
+            invbetaData.invbetarecoerror = recInvBetaRecError;
+            invbetaData.deltaR = deltaR;
+            invbetaData.genEta = hscpEta;
+            invbetaData.recoEta = recoEta;
+            invbetaData.recoPhi = recoPhi;
+            invbetaData.genPhi = hscpPhi;
+            int matchedStations = recoCandidate.numberOfMatchedStations();
+            invbetaData.stationMatches = matchedStations;
+            invbetaTree->Fill();       
         }
-      }
-          //cout << l1tPPtInvbeta << endl;
-      EfficiencyInvbetaEtaAll->Fill(gp.eta(),invbeta);
-      if(abs(gp.eta()) < 0.83){
-        EfficiencyInvbetaPhiAllBarrel->Fill(gpPhi,invbeta);
-      }
-      if(abs(gp.eta())>1.24){
-        EfficiencyInvbetaPhiAllEndcap->Fill(gpPhi,invbeta);
-      }
-      if(abs(gp.eta())>0.83 && abs(gp.eta()<1.24)){
-        EfficiencyInvbetaPhiAllOverlap->Fill(gpPhi,invbeta);
-      }
-      if(l1tPPtInvbeta==1){
-        histoPtEfficiencyL1T->Fill(1,gp.pt());
-        histoPEfficiencyL1T->Fill(1,gp.p());
-        histoInvbetaEfficiencyL1T->Fill(1,invbeta);
-        EfficiencyInvbetaEtaSelected->Fill(gp.eta(),invbeta);
-        if(abs(gp.eta()) < 0.83){
-          EfficiencyInvbetaPhiSelectedBarrel->Fill(gpPhi,invbeta);
-        }
-        if(abs(gp.eta())>1.24){
-          EfficiencyInvbetaPhiSelectedEndcap->Fill(gpPhi,invbeta);
-        }
-        if(abs(gp.eta())>0.83 && abs(gp.eta()<1.24)){
-          EfficiencyInvbetaPhiSelectedOverlap->Fill(gpPhi,invbeta);
-        }
-        //cout << "ENTRY INTO HISTOGRAM MADE" << endl;
-        //cout << "INTO PLOT: DELTA = " << deltaRValue << ", ETA L1T = " << etaMuon << ", ETA GP: " << gp.eta()  << endl;
-      }
-      else if(l1tPPtInvbeta==0){
-        histoPtEfficiencyL1T->Fill(0,gp.pt());
-        histoInvbetaEfficiencyL1T->Fill(0,invbeta);
-        histoPEfficiencyL1T->Fill(0,gp.p());
-      }
-      if(l1tEta==1){
-        histoEtaEfficiencyL1T->Fill(1,gp.eta());
-        histoEtaEfficiencyL1T_eta14->Fill(1,gp.eta());
-      }
-      else if(l1tEta==0){
-        histoEtaEfficiencyL1T->Fill(0,gp.eta());
-        histoEtaEfficiencyL1T_eta14->Fill(0,gp.eta());
-      }
-      if(l1tPPtInvbeta_eta14==1){
-        histoPtEfficiencyL1T_eta14->Fill(1,gp.pt());
-        histoPEfficiencyL1T_eta14->Fill(1,gp.p());
-        histoInvbetaEfficiencyL1T_eta14->Fill(1,invbeta);
-      }
-      else if(l1tPPtInvbeta_eta14==0){
-        histoPtEfficiencyL1T_eta14->Fill(0,gp.pt());
-        histoPEfficiencyL1T_eta14->Fill(0,gp.p());
-        histoInvbetaEfficiencyL1T_eta14->Fill(0,invbeta);
-      }
+        histoMinDeltaR->Fill(minDeltaR);
     }
-  } 
+
+    //////////////////
+  // EFFICIENCY PLOTS //
+    //////////////////
+    for (const auto & gp : genParticles) {
+        if(abs(gp.pdgId())<1000000 || gp.status()!=1 || abs(gp.eta())>2.1 || gp.pt()<50) continue;
+        COUNTGEN++;
+        double hscpP = gp.p();
+        double hscpPt = gp.pt();
+        double hscpMass = gp.mass();
+        double hscpInvbeta = Invbeta(hscpP,hscpMass);
+        double hscpPhi = gp.phi();
+        if (hscpPhi <= 0) hscpPhi += 2*M_PI;
+        double hscpEta = gp.eta();
+        histoMuonStationsTotal->Fill(hscpInvbeta,0);
+        //histoMuonStationsTotal->Fill(invbeta,1);
+        histoMuonStationsTotal->Fill(hscpInvbeta,2);
+        histoMuonStationsTotal->Fill(hscpInvbeta,3);
+        histoMuonStationsTotal->Fill(hscpInvbeta,4);
+        histoMuonStationsTotal->Fill(hscpInvbeta,5);
+        bool rec = false;
+        for(vector<reco::Muon>::const_iterator iter = recoMuons.begin(); iter<recoMuons.end();iter++){
+            const reco::Muon & recoCandidate = *iter;  
+            double deltaR = reco::deltaR(gp,recoCandidate);
+            double recoEta = recoCandidate.eta();
+            double recoPt = recoCandidate.pt();
+            if(recoPt<50 || abs(recoEta)>2.1 || isTightMuon(recoCandidate)==false || abs(recoCandidate.pdgId())!=13 || deltaR>0.02) continue;
+            rec=true;      
+        }
+        histoPtEfficiency->Fill(rec,hscpPt);
+        histoPEfficiency->Fill(rec,hscpP);
+        histoEtaEfficiency->Fill(rec,hscpEta);
+        histoInvbetaEfficiency->Fill(rec,hscpInvbeta);
+        counter++;
+        if(abs(hscpEta)<2.1){ //not going to consider 2.4 at all
+            EfficiencyRecoInvbetaEtaAll->Fill(hscpEta,hscpInvbeta); //regardless of eta value here
+            if(rec==true)EfficiencyRecoInvbetaEtaSelected->Fill(hscpEta,hscpInvbeta);
+        }
+
+        if(abs(hscpEta)<0.83){
+            EfficiencyRecoInvbetaPhiAllBarrel->Fill(hscpPhi,hscpInvbeta);
+            if(rec==true) EfficiencyRecoInvbetaPhiSelectedBarrel->Fill(hscpPhi,hscpInvbeta);
+        }
+
+        else if(abs(hscpEta)>0.83 && abs(hscpEta)<1.24){
+            EfficiencyRecoInvbetaPhiAllOverlap->Fill(hscpPhi,hscpInvbeta);
+            if(rec==true) EfficiencyRecoInvbetaPhiSelectedOverlap->Fill(hscpPhi,hscpInvbeta);
+        }
+
+        else if(abs(hscpEta)>1.24 && abs(hscpEta)<2.1){
+            EfficiencyRecoInvbetaPhiAllEndcap->Fill(hscpPhi,hscpInvbeta);
+            if(rec==true) EfficiencyRecoInvbetaPhiSelectedEndcap->Fill(hscpPhi,hscpInvbeta);
+        }
+    }
+
+    //////////////////////////////
+  // TRIGGER EFFICIENCY ANALYSIS //
+    ////////////////////////////
+
+    int bxNumber = 0;
+    const l1t::MuonBxCollection & gmts = ev.get(theGmtToken); 
+    edm::Handle<BXVector<l1t::Muon>> l1tMuonHandle;
+    ev.getByToken(theGmtToken, l1tMuonHandle);
+    const BXVector<l1t::Muon> & l1tMuons = *l1tMuonHandle.product();
+
+    for (const auto & gp : genParticles){
+        double hscpP = gp.p();
+        double hscpMass = gp.mass();
+        double hscpInvbeta = Invbeta(hscpP,hscpMass);
+        double hscpPhi = gp.phi();
+        double hscpPt = gp.pt();
+        double hscpEta = gp.eta();
+        if (hscpPhi <= 0) hscpPhi += 2*M_PI;
+        bool l1t = false;
+        if(abs(gp.pdgId())<1000000 || gp.status()!=1 || hscpPt<50) continue;
+        for (l1t::MuonBxCollection::const_iterator it = gmts.begin(bxNumber); it != gmts.end(bxNumber); ++it){
+            const l1t::Muon & l1tMuon = *it;  
+            double l1tP = l1tMuon.p();
+            double l1tPt = l1tMuon.pt();
+            double l1tEta = l1tMuon.eta();
+            double l1tMuonInvbeta = Invbeta(l1tP,hscpMass);
+            double deltaR = reco::deltaR(gp,l1tMuon);
+            int l1tQuality = l1tMuon.hwQual();
+            gmtMuonData.pt = l1tPt;
+            gmtMuonData.ptGen = hscpPt;
+            gmtMuonData.p = l1tP;
+            gmtMuonData.pGen = hscpP;
+            gmtMuonData.eta = l1tEta;
+            gmtMuonData.etaGen = hscpEta;
+            gmtMuonData.invbeta = l1tMuonInvbeta;
+            gmtMuonData.invbetaGen = hscpInvbeta;
+            gmtMuonData.deltaR = deltaR;
+            gmtMuonTree->Fill();
+            if(l1tQuality<12 || deltaR > 0.26) continue;
+            l1t = true;
+
+        }
+        if(abs(hscpEta)<2.1){ //not going to consider 2.4 at all, keeping to 2.1 even on eta efficiency plot!
+            histoEtaEfficiencyL1T->Fill(l1t,hscpEta);
+            histoPtEfficiencyL1T->Fill(l1t,hscpPt);
+            histoPEfficiencyL1T->Fill(l1t,hscpP);
+            histoInvbetaEfficiencyL1T->Fill(l1t,hscpInvbeta);
+        }
+        
+        if(abs(hscpEta)<2.1){ //not going to consider 2.4 at all
+            EfficiencyInvbetaEtaAll->Fill(hscpEta,hscpInvbeta); //regardless of eta value here
+            if(l1t==true)EfficiencyInvbetaEtaSelected->Fill(hscpEta,hscpInvbeta);
+            if(hscpInvbeta>1.0 && hscpInvbeta < 1.1) histoEtaEfficiencyL1T_EMTF_A->Fill(l1t,hscpEta);
+            if(hscpInvbeta>1.2 && hscpInvbeta < 1.3) histoEtaEfficiencyL1T_EMTF_B->Fill(l1t,hscpEta);
+
+        }
+
+        if(abs(hscpEta)<0.83){
+            histoPtEfficiencyL1T_BMTF->Fill(l1t,hscpPt);
+            histoPEfficiencyL1T_BMTF->Fill(l1t,hscpP);
+            histoInvbetaEfficiencyL1T_BMTF->Fill(l1t,hscpInvbeta);
+            EfficiencyInvbetaPhiAllBarrel->Fill(hscpPhi,hscpInvbeta);
+            if(l1t==true) EfficiencyInvbetaPhiSelectedBarrel->Fill(hscpPhi,hscpInvbeta);
+        }
+
+        else if(abs(hscpEta)>0.83 && abs(hscpEta)<1.24){
+            histoPtEfficiencyL1T_OMTF->Fill(l1t,hscpPt);
+            histoPEfficiencyL1T_OMTF->Fill(l1t,hscpP);
+            histoInvbetaEfficiencyL1T_OMTF->Fill(l1t,hscpInvbeta);
+            EfficiencyInvbetaPhiAllOverlap->Fill(hscpPhi,hscpInvbeta);
+            if(l1t==true) EfficiencyInvbetaPhiSelectedOverlap->Fill(hscpPhi,hscpInvbeta);
+        }
+
+        else if(abs(hscpEta)>1.24 && abs(hscpEta)<2.1){
+            histoPtEfficiencyL1T_EMTF->Fill(l1t,hscpPt);
+            histoPEfficiencyL1T_EMTF->Fill(l1t,hscpP);
+            histoInvbetaEfficiencyL1T_EMTF->Fill(l1t,hscpInvbeta);
+            EfficiencyInvbetaPhiAllEndcap->Fill(hscpPhi,hscpInvbeta);
+            if(l1t==true) EfficiencyInvbetaPhiSelectedEndcap->Fill(hscpPhi,hscpInvbeta);
+        }
+    }   
 }
-
 
 DEFINE_FWK_MODULE(Projekt);
 
